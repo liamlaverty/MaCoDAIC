@@ -1,15 +1,15 @@
 ﻿using Macodaic.App.console.Models;
 
-namespace Macodaic.App.console.Services
+namespace Macodaic.App.console.Services.Impl
 {
     internal class TickService
     {
         public int Ticks { get; private set; }
-        public List<TickableEntity> TickableEntities { get; private set; } 
+        public List<TickableEntity> TickableEntities { get; private set; }
 
         public TickService()
         {
-            this.Ticks = 0;
+            Ticks = 0;
             TickableEntities = new List<TickableEntity>();
 
         }

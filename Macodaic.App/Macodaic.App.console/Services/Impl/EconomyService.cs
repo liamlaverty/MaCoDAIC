@@ -6,12 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Macodaic.App.console.Models;
 
-namespace Macodaic.App.console.Services
+namespace Macodaic.App.console.Services.Impl
 {
 
     internal class EconomyService
     {
-        public Economy TheEconomy {  get; private set; }
+        public Economy TheEconomy { get; private set; }
 
         public List<VendorAgent> vendorAgents { get; private set; }
         public List<ConsumerAgent> consumerAgents { get; private set; }
@@ -37,6 +37,6 @@ namespace Macodaic.App.console.Services
                 consumerAgents[i] = consumer;
                 tickService.AddTickableEntities(consumer);
             }
-        }     
+        }
     }
 }
