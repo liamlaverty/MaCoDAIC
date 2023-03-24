@@ -1,4 +1,12 @@
 ﻿namespace Macodaic.App.console.Models
 {
-    public class VendorAgent : Agent { }
+    internal class VendorAgent : Agent {
+
+        public override void Tick()
+        {
+            Console.WriteLine("Ticking <VendorAgent>");
+            base.Tick();
+        }
+    
+    }
 }

@@ -3,13 +3,11 @@
 
     public class Economy
     {
-        public IEnumerable<VendorAgent> vendorAgents { get; private set; }
-        public IEnumerable<ConsumerAgent> consumerAgents { get; private set; }
+       
 
-        public Economy(int countVendors, int countConsumers)
+        public Economy()
         {
-            vendorAgents = new List<VendorAgent>(new VendorAgent[countVendors]);
-            consumerAgents = new List<ConsumerAgent>(new ConsumerAgent[countConsumers]); 
+            
         }
     }
 }
