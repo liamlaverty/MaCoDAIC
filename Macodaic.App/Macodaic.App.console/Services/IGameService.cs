@@ -8,5 +8,8 @@ namespace Macodaic.App.console.Services
 {
     internal class IGameService
     {
+        public void Load();
+        public void Start();
+        public void 
     }
 }
