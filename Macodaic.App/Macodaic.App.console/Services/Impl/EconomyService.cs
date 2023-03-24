@@ -9,7 +9,7 @@ using Macodaic.App.console.Models;
 namespace Macodaic.App.console.Services.Impl
 {
 
-    internal class EconomyService
+    internal class EconomyService : IEconomyService
     {
         public Economy TheEconomy { get; private set; }
 

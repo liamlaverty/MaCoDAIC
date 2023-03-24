@@ -2,10 +2,12 @@
 
 namespace Macodaic.App.console.Services.Impl
 {
-    internal class TickService
+    internal class TickService : ITickService
     {
+        public Guid Id => new Guid();
         public int Ticks { get; private set; }
         public List<TickableEntity> TickableEntities { get; private set; }
+
 
         public TickService()
         {
