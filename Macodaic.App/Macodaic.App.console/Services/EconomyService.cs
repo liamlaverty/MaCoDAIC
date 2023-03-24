@@ -7,11 +7,6 @@ using System.Threading.Tasks;
 namespace Macodaic.App.console.Services
 {
 
-    public class Economy
-    {
-
-    }
-
     public class Agent { }
 
     public class ConsumerAgent : Agent { }
