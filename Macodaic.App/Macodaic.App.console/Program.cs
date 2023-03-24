@@ -14,21 +14,17 @@ Start();
 
 void Load()
 {
-    _economyService = new EconomyService(); 
-    _tickService = new TickService(); 
+    _tickService = new TickService();
+    _economyService = new EconomyService(vendorCount: 5, consumerCount: 100);
+
 }
 
 void Start()
 {
     while (__running__)
     {
-        Console.WriteLine($"current tick: {_tickService.Ticks}");
-
-
-
 
         Report();
-
 
         if (_tickService.Ticks == 100)
         {
@@ -37,7 +33,6 @@ void Start()
         _tickService.UpdateTick();
     }
     Stop();
-
 }
 
 
@@ -48,6 +43,9 @@ void Stop()
 
 void Report()
 {
+    Console.WriteLine($"current tick: {_tickService.Ticks}");
+    Console.WriteLine($"Economy has : {_economyService.TheEconomy.vendorAgents.Count()}");
+    Console.WriteLine($"Economy has : {_economyService.TheEconomy.consumerAgents.Count()}");
 
 }
 
