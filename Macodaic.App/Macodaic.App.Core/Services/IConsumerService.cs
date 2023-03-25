@@ -3,11 +3,4 @@
     public interface IConsumerService
     {
     }
-
-    public class ConsumerService : IConsumerService
-    {
-        public ConsumerService()
-        {
-        }
-    }
 }

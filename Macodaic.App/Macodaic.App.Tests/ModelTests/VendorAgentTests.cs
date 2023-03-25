@@ -44,5 +44,42 @@ namespace Macodaic.App.Tests.ModelTests
             // Assert
             Assert.IsTrue(has100Dollars);
         }
+
+        // test if the VendorAgent class has a constructor with one parameter
+        [TestMethod]
+        public void VendorAgent_HasConstructorWithOneParameter()
+        {
+            // Arrange
+            var vendorAgent = new VendorAgent(100);
+            // Act
+            var constructor = vendorAgent.GetType().GetConstructor(new Type[] { typeof(decimal) });
+            // Assert
+            Assert.IsNotNull(constructor);
+        }
+
+        // test if a vendor agent has an ID after being created
+        [TestMethod]
+        public void VendorAgent_HasIDAfterCreation()
+        {
+            // Arrange
+            var vendorAgent = new VendorAgent(100);
+            // Act
+            var hasID = vendorAgent.Id != Guid.Empty;
+            // Assert
+            Assert.IsTrue(hasID);
+        }
+
+        // test if the Id created is a unique guid
+        [TestMethod]
+        public void VendorAgent_HasUniqueID()
+        {
+            // Arrange
+            var vendorAgent1 = new VendorAgent(100);
+            var vendorAgent2 = new VendorAgent(100);
+            // Act
+            var hasUniqueID = vendorAgent1.Id != vendorAgent2.Id;
+            // Assert
+            Assert.IsTrue(hasUniqueID);
+        }
     }
 }

@@ -3,11 +3,4 @@
     public interface IVendorService
     {
     }
-
-    public class VendorService : IVendorService
-    {
-        public VendorService()
-        {
-        }
-    }
 }

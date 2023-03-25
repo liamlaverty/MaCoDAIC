@@ -1,11 +1,13 @@
 ﻿namespace Macodaic.App.Core.Models
 {
-    internal class VendorAgent : Agent 
+    internal class VendorAgent : Agent
     {
         internal int Oranges { get; private set; }
 
         internal decimal MarginalCostOfOperations { get; }
         internal decimal AvailableFunds { get; private set; }
+        
+ 
 
         public VendorAgent(decimal initialFunds)
         {

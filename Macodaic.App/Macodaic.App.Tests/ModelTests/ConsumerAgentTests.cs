@@ -32,5 +32,41 @@ namespace Macodaic.App.Tests.ModelTests
             Assert.IsTrue(inheritsFromAgent);
         }
 
+        // test if the ConsumerAgent class has a constructor with no params
+        [TestMethod]
+        public void ConsumerAgent_HasConstructorWithNoParameters()
+        {
+            // Arrange
+            var consumerAgent = new ConsumerAgent();
+            // Act
+            var constructor = consumerAgent.GetType().GetConstructor(new Type[] { });
+            // Assert
+            Assert.IsNotNull(constructor);
+        }
+
+        // test if a consumer agent has an Id after being created
+        [TestMethod]
+        public void ConsumerAgent_HasIdAfterBeingCreated()
+        {
+            // Arrange
+            var consumerAgent = new ConsumerAgent();
+            // Act
+            var hasId = consumerAgent.Id != Guid.Empty;
+            // Assert
+            Assert.IsTrue(hasId);
+        }
+
+        // test if a consumer agent has a unique Id after being created
+        [TestMethod]
+        public void ConsumerAgent_HasUniqueIdsAfterBeingCreated()
+        {
+            // Arrange
+            var consumerAgent1 = new ConsumerAgent();
+            var consumerAgent2 = new ConsumerAgent();
+            // Act
+            var hasUniqueIds = consumerAgent1.Id != consumerAgent2.Id;
+            // Assert
+            Assert.IsTrue(hasUniqueIds);
+        }
     }
 }
