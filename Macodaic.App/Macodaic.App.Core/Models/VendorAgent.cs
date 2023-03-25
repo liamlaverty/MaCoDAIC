@@ -4,8 +4,8 @@
     {
         internal int Oranges { get; private set; }
 
-        private decimal MarginalCostOfOperations { get; }
-        private decimal AvailableFunds { get; set; }
+        internal decimal MarginalCostOfOperations { get; }
+        internal decimal AvailableFunds { get; private set; }
 
         public VendorAgent(decimal initialFunds)
         {
