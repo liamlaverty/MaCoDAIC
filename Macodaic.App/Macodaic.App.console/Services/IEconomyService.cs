@@ -7,5 +7,7 @@ namespace Macodaic.App.console.Services
         List<ConsumerAgent> consumerAgents { get; }
         Economy TheEconomy { get; }
         List<VendorAgent> vendorAgents { get; }
+        
+        void Load(int vendorCount, int consumerCount);
     }
 }
