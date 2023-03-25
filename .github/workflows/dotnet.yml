@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults: 
       run: 
-        working-directory: /home/runner/work/MaCoDAIC/MaCoDAIC/
+        working-directory: /home/runner/work/MaCoDAIC/MaCoDAIC/Macodaic.App/
 
     steps:
     - uses: actions/checkout@v3
