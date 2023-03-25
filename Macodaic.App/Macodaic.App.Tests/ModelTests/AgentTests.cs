@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Macodaic.App.Core.Models;
 
 
-namespace Macodaic.App.Tests
+namespace Macodaic.App.Tests.ModelTests
 {
     [TestClass]
     public class AgentTests
@@ -19,8 +19,5 @@ namespace Macodaic.App.Tests
             // Assert
             Assert.IsFalse(isAbstract);
         }
-
-
-        
     }
 }
