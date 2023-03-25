@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults: 
       run: 
-        working-directory: /home/runner/work/MaCoDAIC/MaCoDAIC/MaCoDAIC.App/
+        working-directory: /home/runner/work/MaCoDAIC/
 
     steps:
     - uses: actions/checkout@v3
@@ -26,6 +26,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build Macodaic.App.sln
+      run: dotnet build
     - name: Test
       run: dotnet test --no-build --verbosity normal
