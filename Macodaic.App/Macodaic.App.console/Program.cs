@@ -14,6 +14,9 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddLogging();
         services.AddSingleton<ITickService, TickService>();
         services.AddSingleton<IReportService, ReportService>();
+        services.AddSingleton<IWholesalerService, WholesalerService>();
+        services.AddSingleton<IVendorService, VendorService>();
+        services.AddSingleton<IConsumerService, ConsumerService>();
         services.AddSingleton<IGameService, GameService>();
         services.AddScoped<IEconomyService, EconomyService>();
         services.BuildServiceProvider();

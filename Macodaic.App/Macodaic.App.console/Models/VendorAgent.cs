@@ -1,19 +1,20 @@
 ﻿namespace Macodaic.App.console.Models
 {
-    internal class VendorAgent : Agent {
+    internal class VendorAgent : Agent 
+    {
+        internal int Oranges { get; private set; }
 
-
+        private decimal MarginalCostOfOperations { get; }
         private decimal AvailableFunds { get; set; }
 
         public VendorAgent(decimal initialFunds)
         {
             AvailableFunds = initialFunds;
+            MarginalCostOfOperations = (decimal)0.25;
         }
 
         public override void Tick()
         {
-            // Console.WriteLine($"Ticking <{nameof(VendorAgent)}>");
-
 
             base.Tick();
         }
@@ -23,7 +24,7 @@
         /// </summary>
         public override void Report()
         {
-            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:{AvailableFunds}");
+            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:${AvailableFunds}");
             base.Report();
         }
     

@@ -5,6 +5,11 @@
         private readonly ITickService _tickService;
         private readonly IEconomyService _economyService;
         private readonly IReportService _reportService;
+
+
+        private readonly IVendorService _vendorService;
+        private readonly IWholesalerService _wholesalerService;
+        private readonly IConsumerService _consumerService;
         private bool __running__ = false;
         private readonly int _MAX_TICKS_ = 100;
         
