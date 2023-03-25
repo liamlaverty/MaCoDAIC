@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Macodaic.App.console.Models
 {
-    internal class TickableEntity
+    public interface IReportableEntity 
     {
-        public virtual void Tick()
-        {
-            Console.WriteLine("Ticking <TickableEntities>");
+        public abstract void Report();
+    }
 
-        }
+    public interface ITickableEntity
+    {
+        public abstract void Tick();
     }
 }

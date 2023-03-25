@@ -5,14 +5,13 @@ namespace Macodaic.App.console.Services.Impl
     internal class TickService : ITickService
     {
         public Guid Id => new Guid();
-        public int Ticks { get; private set; }
-        public List<TickableEntity> TickableEntities { get; private set; }
+        public int Ticks { get; private set; } = 0;
+        public List<ITickableEntity> TickableEntities { get; private set; }
 
 
         public TickService()
         {
-            Ticks = 0;
-            TickableEntities = new List<TickableEntity>();
+            TickableEntities = new List<ITickableEntity>();
 
         }
         public void UpdateTick()
@@ -24,7 +23,7 @@ namespace Macodaic.App.console.Services.Impl
             }
         }
 
-        public void AddTickableEntities(TickableEntity tickableEntity)
+        public void AddTickableEntities(ITickableEntity tickableEntity)
         {
             TickableEntities.Add(tickableEntity);
         }

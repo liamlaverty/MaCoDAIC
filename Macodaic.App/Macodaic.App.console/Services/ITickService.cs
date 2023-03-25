@@ -19,10 +19,10 @@ namespace Macodaic.App.console.Services
     {
         ServiceLifetime IReportServiceLifetime.Lifetime => ServiceLifetime.Scoped;
         
-        List<TickableEntity> TickableEntities { get; }
+        List<ITickableEntity> TickableEntities { get; }
         int Ticks { get; }
 
-        void AddTickableEntities(TickableEntity tickableEntity);
+        void AddTickableEntities(ITickableEntity tickableEntity);
         void UpdateTick();
     }
 }

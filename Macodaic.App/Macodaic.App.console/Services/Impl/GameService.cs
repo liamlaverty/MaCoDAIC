@@ -24,8 +24,8 @@
         public void Report()
         {
             Console.WriteLine($"\n\ncurrent tick: {_tickService.Ticks}");
-            Console.WriteLine($"Economy has : {_economyService.vendorAgents.Count()} vendors");
-            Console.WriteLine($"Economy has : {_economyService.consumerAgents.Count()} consumers");
+            // Console.WriteLine($"Economy has : {_economyService.vendorAgents.Count()} vendors");
+            // Console.WriteLine($"Economy has : {_economyService.consumerAgents.Count()} consumers");
         }
 
         public void Start()

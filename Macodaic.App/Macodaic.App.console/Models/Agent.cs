@@ -1,11 +1,16 @@
 ﻿namespace Macodaic.App.console.Models
 {
-    internal class Agent : TickableEntity {
-        public override void Tick()
+    internal class Agent : ITickableEntity, IReportableEntity
+    {
+        public virtual void Report()
         {
-            Console.WriteLine("Ticking <Agent>");
-            base.Tick();
+            //Console.WriteLine("Reoprting <Agent>");
+
         }
 
+        public virtual void Tick()
+        {
+            //Console.WriteLine("Ticking <Agent>");
+        }
     }
 }
