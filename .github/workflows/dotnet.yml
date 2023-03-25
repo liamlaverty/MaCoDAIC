@@ -24,7 +24,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore Macodaic.App.sln
+      run: dotnet restore /home/runner/work/MaCoDAIC/MaCoDAIC/Macodaic.App/Macodaic.App.sln
     - name: Build
       run: dotnet build
     - name: Test
