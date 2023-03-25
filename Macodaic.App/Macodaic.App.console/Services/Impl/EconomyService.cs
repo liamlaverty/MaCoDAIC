@@ -39,7 +39,7 @@ namespace Macodaic.App.console.Services.Impl
 
             for (int i = 0; i < vendorAgents.Count; i++)
             {
-                var vendor = new VendorAgent();
+                var vendor = new VendorAgent(500);
                 vendorAgents[i] = vendor;
                 _tickService.RegisterTickableEntity(vendor);
                 _reportService.RegisterReportableEntity(vendor);

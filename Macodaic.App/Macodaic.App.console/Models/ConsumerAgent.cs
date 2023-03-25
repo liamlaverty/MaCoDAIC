@@ -2,7 +2,6 @@
 {
     internal class ConsumerAgent : Agent
     {
-        public Guid Id { get; } = new Guid();
         internal int Oranges { get; private set; }
 
         private decimal MarginalUtility { get; set; }
@@ -10,7 +9,7 @@
         /// <summary>
         /// tracks the amount of money this consumer has
         /// </summary>
-        internal decimal AvailableFunds { get; private set; }
+        private decimal AvailableFunds { get; set; }
 
         /// <summary>
         /// Tracks the amount of utility this consumer has
@@ -27,7 +26,6 @@
 
         public override void Tick()
         {
-            // Console.WriteLine("Ticking <ConsumerAgent>");
             RestoreMarginalUtility();
             ConsumeOranges();
 
@@ -36,14 +34,15 @@
 
         public override void Report()
         {
-            Console.WriteLine($"Ticking <{nameof(ConsumerAgent)}>");
-            Console.WriteLine($"Consumer has {MarginalUtility} {nameof(MarginalUtility)}");
-            Console.WriteLine($"Consumer has {AvailableFunds} {nameof(AvailableFunds)}");
-
+            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(MarginalUtility)}:{MarginalUtility} | {nameof(AvailableFunds)}:${AvailableFunds}");
             base.Report();
   
         }
 
+        /// <summary>
+        /// A method at the end of each tick which slightly re-increases
+        /// marginal utility before the next round begins
+        /// </summary>
         private void RestoreMarginalUtility()
         {
             MarginalUtility += (decimal)0.3;

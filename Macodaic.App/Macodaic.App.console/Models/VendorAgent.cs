@@ -2,6 +2,14 @@
 {
     internal class VendorAgent : Agent {
 
+
+        private decimal AvailableFunds { get; set; }
+
+        public VendorAgent(decimal initialFunds)
+        {
+            AvailableFunds = initialFunds;
+        }
+
         public override void Tick()
         {
             // Console.WriteLine($"Ticking <{nameof(VendorAgent)}>");
@@ -15,7 +23,7 @@
         /// </summary>
         public override void Report()
         {
-            Console.WriteLine($"Ticking <{nameof(VendorAgent)}>");
+            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:{AvailableFunds}");
             base.Report();
         }
     
