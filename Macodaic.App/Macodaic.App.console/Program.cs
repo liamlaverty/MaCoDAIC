@@ -1,9 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using Macodaic.App.console.Services;
-using Macodaic.App.console.Services.Impl;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Macodaic.App.Core.Services;
+using Macodaic.App.Core.Services.Impl;
 
 Console.WriteLine($"Main starting");
 
