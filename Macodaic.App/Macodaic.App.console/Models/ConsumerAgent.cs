@@ -27,7 +27,7 @@
 
         public override void Tick()
         {
-            Console.WriteLine("Ticking <ConsumerAgent>");
+            // Console.WriteLine("Ticking <ConsumerAgent>");
             RestoreMarginalUtility();
             ConsumeOranges();
 
@@ -36,8 +36,12 @@
 
         public override void Report()
         {
-            Console.WriteLine($"Consumer has {MarginalUtility} marginal utility");
-            Console.WriteLine($"Consumer has {AvailableFunds} available funds");
+            Console.WriteLine($"Ticking <{nameof(ConsumerAgent)}>");
+            Console.WriteLine($"Consumer has {MarginalUtility} {nameof(MarginalUtility)}");
+            Console.WriteLine($"Consumer has {AvailableFunds} {nameof(AvailableFunds)}");
+
+            base.Report();
+  
         }
 
         private void RestoreMarginalUtility()

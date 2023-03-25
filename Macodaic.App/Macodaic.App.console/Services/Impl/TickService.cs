@@ -14,7 +14,7 @@ namespace Macodaic.App.console.Services.Impl
             TickableEntities = new List<ITickableEntity>();
 
         }
-        public void UpdateTick()
+        public void TickAllEntities()
         {
             Ticks++;
             for (int i = 0; i < TickableEntities.Count; i++)
@@ -23,7 +23,7 @@ namespace Macodaic.App.console.Services.Impl
             }
         }
 
-        public void AddTickableEntities(ITickableEntity tickableEntity)
+        public void RegisterTickableEntity(ITickableEntity tickableEntity)
         {
             TickableEntities.Add(tickableEntity);
         }

@@ -4,14 +4,17 @@
     {
         private readonly ITickService _tickService;
         private readonly IEconomyService _economyService;
+        private readonly IReportService _reportService;
         private bool __running__ = false;
         private readonly int _MAX_TICKS_ = 100;
         
 
-        public GameService(ITickService tickService, IEconomyService economyService)
+        public GameService(ITickService tickService, IEconomyService economyService,
+            IReportService reportService)
         {
             _tickService = tickService;
             _economyService = economyService;
+            _reportService = reportService;
         }
 
         public void Load(int numberVendors, int numberConsumers)
@@ -24,15 +27,14 @@
         public void Report()
         {
             Console.WriteLine($"\n\ncurrent tick: {_tickService.Ticks}");
-            // Console.WriteLine($"Economy has : {_economyService.vendorAgents.Count()} vendors");
-            // Console.WriteLine($"Economy has : {_economyService.consumerAgents.Count()} consumers");
+            _reportService.ReportAllEntities();
         }
 
         public void Start()
         {
             while (__running__)
             {
-                _tickService.UpdateTick();
+                _tickService.TickAllEntities();
                 Report();
 
                 if (_tickService.Ticks == _MAX_TICKS_)

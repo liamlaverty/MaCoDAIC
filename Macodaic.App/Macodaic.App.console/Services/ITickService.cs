@@ -8,21 +8,12 @@ using System.Threading.Tasks;
 
 namespace Macodaic.App.console.Services
 {
-    public interface IReportServiceLifetime
-    {
-        Guid Id { get;  }
-        ServiceLifetime Lifetime { get; }
-    }
-
-
-    internal interface ITickService : IReportServiceLifetime
-    {
-        ServiceLifetime IReportServiceLifetime.Lifetime => ServiceLifetime.Scoped;
+    internal interface ITickService    {
         
         List<ITickableEntity> TickableEntities { get; }
         int Ticks { get; }
 
-        void AddTickableEntities(ITickableEntity tickableEntity);
-        void UpdateTick();
+        void RegisterTickableEntity(ITickableEntity tickableEntity);
+        void TickAllEntities();
     }
 }

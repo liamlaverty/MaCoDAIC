@@ -13,6 +13,7 @@ var host = Host.CreateDefaultBuilder(args)
     {
         services.AddLogging();
         services.AddSingleton<ITickService, TickService>();
+        services.AddSingleton<IReportService, ReportService>();
         services.AddSingleton<IGameService, GameService>();
         services.AddScoped<IEconomyService, EconomyService>();
         services.BuildServiceProvider();
