@@ -2,5 +2,6 @@
 {
     public interface IConsumerService
     {
+        void Load(int consumerCount);
     }
 }

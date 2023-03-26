@@ -2,5 +2,7 @@
 {
     public interface IVendorService
     {
+        void Load(int vendorCount);
     }
+
 }

@@ -6,6 +6,5 @@ namespace Macodaic.App.Core.Services
     {
         Economy TheEconomy { get; }
         
-        void Load(int vendorCount, int consumerCount);
     }
 }

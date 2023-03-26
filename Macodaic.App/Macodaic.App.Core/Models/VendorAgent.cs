@@ -2,10 +2,10 @@
 {
     internal class VendorAgent : Agent
     {
-        internal int Oranges { get; private set; }
-
+        internal int OrangeInventory { get; private set; }
         internal decimal MarginalCostOfOperations { get; }
         internal decimal AvailableFunds { get; private set; }
+
         
  
 
@@ -21,14 +21,17 @@
             base.Tick();
         }
 
+      
+
         /// <summary>
         /// 
         /// </summary>
         public override void Report()
         {
-            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:${AvailableFunds}");
+            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:${AvailableFunds} | {nameof(OrangeInventory)}:{OrangeInventory}");
             base.Report();
         }
-    
+
+
     }
 }

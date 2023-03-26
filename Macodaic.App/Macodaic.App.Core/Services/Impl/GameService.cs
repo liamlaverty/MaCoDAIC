@@ -15,17 +15,21 @@
         
 
         public GameService(ITickService tickService, IEconomyService economyService,
-            IReportService reportService)
+            IReportService reportService, IVendorService vendorService, 
+            IConsumerService consumerService)
         {
             _tickService = tickService;
             _economyService = economyService;
             _reportService = reportService;
+            _vendorService = vendorService;
+            _consumerService = consumerService;
         }
 
         public void Load(int numberVendors, int numberConsumers)
         {
             Console.WriteLine($"Game.Load called");
-            _economyService.Load(numberVendors, numberConsumers);
+            _vendorService.Load(numberVendors);
+            _consumerService.Load(numberConsumers);
             __running__ = true;
         }
 
