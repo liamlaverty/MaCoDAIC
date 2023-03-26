@@ -6,8 +6,12 @@
         internal decimal MarginalCostOfOperations { get; }
         internal decimal AvailableFunds { get; private set; }
 
-        private decimal _currentPrice = 0;
-        private decimal _recentPriceOfOranges = 0;
+        private decimal _currentPrice=0;
+
+        /// <summary>
+        ///  list of prices of oranges from the wholesaler
+        /// </summary>
+        private List<decimal> _recentWholesalePriceOfOranges;
 
         
  
@@ -16,6 +20,7 @@
         {
             AvailableFunds = initialFunds;
             MarginalCostOfOperations = (decimal)0.25;
+            _recentWholesalePriceOfOranges = new List<decimal>();
         }
 
         public override void Tick()
@@ -26,15 +31,21 @@
 
         public void PurchaseOranges (decimal wholesalerPrice)
         {
+            _recentWholesalePriceOfOranges.Add(wholesalerPrice);
+            if (AvailableFunds > wholesalerPrice)
+            {
 
+            }
         }
+
+
 
         /// <summary>
         ///  Sets the current price of oranges
         /// </summary>
         public void SetCurrentPrice()
         {
-            _currentPrice = MarginalCostOfOperations + _recentPriceOfOranges;
+            _currentPrice = MarginalCostOfOperations + _recentWholesalePriceOfOranges.Last();
         }
       
 

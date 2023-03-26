@@ -25,7 +25,7 @@ namespace Macodaic.App.Core.Services.Impl
             vendorAgents = new List<VendorAgent>(new VendorAgent[vendorCount]);
             for (int i = 0; i < vendorAgents.Count; i++)
             {
-                var vendor = new VendorAgent(500);
+                var vendor = new VendorAgent(25);
                 vendorAgents[i] = vendor;
                 _reportService.RegisterReportableEntity(vendor);
             }
