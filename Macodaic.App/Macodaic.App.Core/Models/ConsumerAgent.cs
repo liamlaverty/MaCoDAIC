@@ -125,9 +125,9 @@ namespace Macodaic.App.Core.Models
         /// to the number of oranges
         /// </summary>
         /// <param name="request"></param>
-        internal void SatisfyTransaction(ConsumerPurchaseRequest request)
+        internal void SatisfyTransactionOnConsumerSide(ConsumerPurchaseRequest request)
         {
-            AvailableFunds -= request.ExpectedPrice;
+            AvailableFunds -= request.ExpectedTotalPriceOfTransaction;
             if (AvailableFunds < 0)
             {
                 throw new Exception("Transaction took a consumer below $0.00 in funds");

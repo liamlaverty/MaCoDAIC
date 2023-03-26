@@ -8,7 +8,7 @@ namespace Macodaic.App.Core.Services
         List<VendorOffer> GetPriceList();
         void Tick();
         bool CanSatisfyRequest(ConsumerPurchaseRequest request);
-        void SatisfyRequest(ConsumerPurchaseRequest request);
+        void SatisfyTransactionOnVendorSide(ConsumerPurchaseRequest request);
     }
 
 }

@@ -49,7 +49,15 @@
         }
 
        
-
+        public void VendOranges(int numberOranges, decimal expectedTotalPriceOfTransaction)
+        {
+            if (numberOranges * _currentPrice != expectedTotalPriceOfTransaction)
+            {
+                throw new ArgumentException($"price requested ${expectedTotalPriceOfTransaction} was incorrect for the requested quantity of oranges ({numberOranges}). Calculated price was {numberOranges * _currentPrice}");
+            }
+            OrangeInventory -= numberOranges;
+            AvailableFunds += expectedTotalPriceOfTransaction;
+        }
 
 
         /// <summary>

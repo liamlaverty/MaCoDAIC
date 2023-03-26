@@ -8,12 +8,12 @@
             ConsumerId = consumerId;
             VendorId = vendorId;
             NumberOfOrangesRequested = numberOfOrangesRequested;
-            ExpectedPrice = expectedPrice;
+            ExpectedTotalPriceOfTransaction = expectedPrice;
         }
 
         public Guid ConsumerId { get; }
         public Guid VendorId { get; }
         public int NumberOfOrangesRequested { get; }
-        public decimal ExpectedPrice { get; }
+        public decimal ExpectedTotalPriceOfTransaction { get; }
     }
 }

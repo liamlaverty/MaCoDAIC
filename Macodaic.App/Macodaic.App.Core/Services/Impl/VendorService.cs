@@ -53,5 +53,29 @@ namespace Macodaic.App.Core.Services.Impl
                 vendorAgents[i].SetCurrentPrice();
             }
         }
+
+        public bool CanSatisfyRequest(ConsumerPurchaseRequest request)
+        {
+            var vendor = vendorAgents.First(c => c.Id == request.VendorId);
+            if (vendor == null)
+            {
+                throw new ArgumentNullException($"{nameof(vendor)} with ID {request.VendorId} was null");
+            }
+            if (vendor.OrangeInventory < request.NumberOfOrangesRequested)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void SatisfyTransactionOnVendorSide(ConsumerPurchaseRequest request)
+        {
+            var vendor = vendorAgents.First(c => c.Id == request.VendorId);
+            if (vendor == null)
+            {
+                throw new ArgumentNullException($"{nameof(vendor)} with ID {request.VendorId} was null");
+            }
+            vendor.VendOranges(request.NumberOfOrangesRequested, request.ExpectedTotalPriceOfTransaction);
+        }
     }
 }

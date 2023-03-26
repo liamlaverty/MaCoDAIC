@@ -41,8 +41,8 @@ namespace Macodaic.App.Core.Services.Impl
                     bool satisfiable = _vendorService.CanSatisfyRequest(request);
                     if (satisfiable)
                     {
-                        _vendorService.SatisfyRequest(request);
-                        consumerAgents[i].SatisfyTransaction(request);
+                        _vendorService.SatisfyTransactionOnVendorSide(request);
+                        consumerAgents[i].SatisfyTransactionOnConsumerSide(request);
                     }
                     else
                     {
