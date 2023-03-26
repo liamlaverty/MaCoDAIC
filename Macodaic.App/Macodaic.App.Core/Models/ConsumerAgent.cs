@@ -43,7 +43,7 @@ namespace Macodaic.App.Core.Models
         }
 
         /// <summary>
-        /// A method at the end of each tick which slightly re-increases
+        /// A method at the start of each tick which slightly re-increases
         /// marginal utility before the next round begins. 
         /// 
         /// Uses LERPing to increase by 50% each time
