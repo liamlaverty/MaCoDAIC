@@ -91,7 +91,7 @@ namespace Macodaic.App.Tests.ModelTests
             var vendorAgent = new VendorAgent(100);
             var initialInventory = vendorAgent.OrangeInventory;
             // Act
-            vendorAgent.PurchaseOranges(1);
+            vendorAgent.PurchaseOrangesFromWholesaler(1);
             var finalInventory = vendorAgent.OrangeInventory;
             // Assert
             Assert.IsTrue(finalInventory > initialInventory);
@@ -105,7 +105,7 @@ namespace Macodaic.App.Tests.ModelTests
             var vendorAgent = new VendorAgent(100);
             var initialFunds = vendorAgent.AvailableFunds;
             // Act
-            vendorAgent.PurchaseOranges(1);
+            vendorAgent.PurchaseOrangesFromWholesaler(1);
             var finalFunds = vendorAgent.AvailableFunds;
             // Assert
             Assert.IsTrue(finalFunds < initialFunds);
@@ -119,7 +119,7 @@ namespace Macodaic.App.Tests.ModelTests
             var vendorAgent = new VendorAgent(100);
             var initialListCount = vendorAgent._recentWholesalePriceOfOranges.Count;
             // Act
-            vendorAgent.PurchaseOranges(1);
+            vendorAgent.PurchaseOrangesFromWholesaler(1);
             var finalListCount = vendorAgent._recentWholesalePriceOfOranges.Count;
             // Assert
             Assert.IsTrue(finalListCount > initialListCount);
@@ -133,7 +133,7 @@ namespace Macodaic.App.Tests.ModelTests
             var vendorAgent = new VendorAgent(100);
             var initialInventory = vendorAgent.OrangeInventory;
             // Act
-            vendorAgent.PurchaseOranges(1000);
+            vendorAgent.PurchaseOrangesFromWholesaler(1000);
             var finalInventory = vendorAgent.OrangeInventory;
             // Assert
             Assert.IsTrue(finalInventory == initialInventory);

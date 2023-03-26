@@ -6,6 +6,7 @@ namespace Macodaic.App.Core.Models
     internal class ConsumerAgent : Agent
     {
         internal int Oranges { get; private set; }
+        internal int TotalOrangesConsumed { get; private set; }
 
         private decimal MarginalUtilityOfOranges { get; set; }
 
@@ -24,14 +25,14 @@ namespace Macodaic.App.Core.Models
         public ConsumerAgent()
         {
             MarginalUtilityOfOranges = 1m;
-            AvailableFunds = 50m;
-            Oranges = 3;
+            AvailableFunds = 0;
+            Oranges = 1;
         }
 
 
         public override void Report()
         {
-            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(Oranges)}:{Oranges} | {nameof(MarginalUtilityOfOranges)}:{MarginalUtilityOfOranges} | {nameof(Utility)}:{Utility} | {nameof(AvailableFunds)}:${AvailableFunds}");
+            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(Oranges)}:{Oranges} | {nameof(TotalOrangesConsumed)}:{TotalOrangesConsumed} | {nameof(MarginalUtilityOfOranges)}:{MarginalUtilityOfOranges.ToString("0.##")} | {nameof(Utility)}:{Utility.ToString("0.##")} | {nameof(AvailableFunds)}:${AvailableFunds.ToString("0.##")}");
             base.Report();
   
         }
@@ -70,31 +71,7 @@ namespace Macodaic.App.Core.Models
         }
 
 
-        /// <summary>
-        /// The consumer picks from the list of vendors the 
-        /// 
-        /// </summary>
-        /// <param name="vendorPriceList"></param>
-        /// <returns></returns>
-        public List<ConsumerPurchaseRequest> GenerateTransactionPreferences(List<VendorOffer> vendorPriceList)
-        {
-            var result = new List<ConsumerPurchaseRequest>();
-            if (AvailableFunds > 0)
-            {
-                if (vendorPriceList.Any(c => c.PricePerOrange < AvailableFunds))
-                {
-                    int quantityToPurchase = 1;
-                    var vendorOfferPreference = vendorPriceList.First(c => c.PricePerOrange < AvailableFunds);
-                    result.Add(new ConsumerPurchaseRequest(
-                        Id, 
-                        vendorOfferPreference.VendorId,
-                        quantityToPurchase,
-                        quantityToPurchase * vendorOfferPreference.PricePerOrange));
-                }
-            }
-            return result;
-        }
-
+       
 
 
         /// <summary>
@@ -109,6 +86,7 @@ namespace Macodaic.App.Core.Models
                 IncreaseUtility();
                 DepleteMarginalUtilityOfOranges();
                 Oranges--;
+                TotalOrangesConsumed++;
 
                 if (MarginalUtilityOfOranges <= 0)
                 {
@@ -118,6 +96,30 @@ namespace Macodaic.App.Core.Models
             }
         }
 
+        /// <summary>
+        /// The consumer picks from the list of vendors the 
+        /// 
+        /// </summary>
+        /// <param name="vendorPriceList"></param>
+        /// <returns></returns>
+        public List<ConsumerPurchaseRequest> GenerateTransactionPreferences(List<VendorOffer> vendorPriceList)
+        {
+            var result = new List<ConsumerPurchaseRequest>();
+            if (AvailableFunds > 0)
+            {
+                if (vendorPriceList.Any(c => c.PricePerOrange < AvailableFunds))
+                {
+                    int quantityToPurchase = 1;
+                    var vendorOfferPreference = vendorPriceList.OrderBy(c => c.PricePerOrange).First(c => c.PricePerOrange < AvailableFunds);
+                    result.Add(new ConsumerPurchaseRequest(
+                        Id,
+                        vendorOfferPreference.VendorId,
+                        quantityToPurchase,
+                        quantityToPurchase * vendorOfferPreference.PricePerOrange));
+                }
+            }
+            return result;
+        }
 
 
         /// <summary>
@@ -133,6 +135,11 @@ namespace Macodaic.App.Core.Models
                 throw new Exception("Transaction took a consumer below $0.00 in funds");
             }
             Oranges += request.NumberOfOrangesRequested;
+        }
+
+        internal void TopUpFinances(decimal income)
+        {
+            AvailableFunds += income;
         }
     }
 }

@@ -3,7 +3,9 @@
     internal class VendorAgent : Agent
     {
         internal int OrangeInventory { get; private set; }
-        internal decimal MarginalCostOfOperations { get; }
+        internal int TotalOrangesSold { get; private set; }
+        internal decimal MarginalCostOfOperations { get; private set; }
+        internal decimal BaseMarginalCostOfOperations { get; }
         internal decimal AvailableFunds { get; private set; }
 
         private decimal _currentPrice=0;
@@ -13,18 +15,30 @@
         /// </summary>
         internal List<decimal> _recentWholesalePriceOfOranges;
 
-        
- 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override void Report()
+        {
+            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:${AvailableFunds} | {nameof(_currentPrice)}:${_currentPrice.ToString("0.##")} | {nameof(OrangeInventory)}:{OrangeInventory} | {nameof(TotalOrangesSold)}:{TotalOrangesSold}");
+            base.Report();
+        }
 
         public VendorAgent(decimal initialFunds)
         {
             AvailableFunds = initialFunds;
-            MarginalCostOfOperations = (decimal)0.25;
+            BaseMarginalCostOfOperations = (decimal)0.25;
+            MarginalCostOfOperations = BaseMarginalCostOfOperations;
             _recentWholesalePriceOfOranges = new List<decimal>();
         }
 
         public override void Tick()
         {
+            Random r = new Random();
+            // moves the marginal cost of operations slightly for each vendor
+            decimal random = (decimal)(r.Next(90, 110) * 0.01);
+            MarginalCostOfOperations = BaseMarginalCostOfOperations * random;
             base.Tick();
         }
 
@@ -34,7 +48,7 @@
         ///  wholesaler
         /// </summary>
         /// <param name="wholesalerPrice"></param>
-        public void PurchaseOranges (decimal wholesalerPrice)
+        public void PurchaseOrangesFromWholesaler (decimal wholesalerPrice)
         {
             _recentWholesalePriceOfOranges.Add(wholesalerPrice);
             if (AvailableFunds > wholesalerPrice)
@@ -56,6 +70,7 @@
                 throw new ArgumentException($"price requested ${expectedTotalPriceOfTransaction} was incorrect for the requested quantity of oranges ({numberOranges}). Calculated price was {numberOranges * _currentPrice}");
             }
             OrangeInventory -= numberOranges;
+            TotalOrangesSold += numberOranges;
             AvailableFunds += expectedTotalPriceOfTransaction;
         }
 
@@ -69,14 +84,7 @@
         }
         public decimal GetCurrentPrice(){ return _currentPrice; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public override void Report()
-        {
-            Console.WriteLine($"{nameof(VendorAgent)}:{Id} | {nameof(AvailableFunds)}:${AvailableFunds} | {nameof(OrangeInventory)}:{OrangeInventory}");
-            base.Report();
-        }
+     
 
 
     }

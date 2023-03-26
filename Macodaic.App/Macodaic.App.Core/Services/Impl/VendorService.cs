@@ -48,7 +48,8 @@ namespace Macodaic.App.Core.Services.Impl
             decimal wholesalePrice = _wholesalerService.GetWholesaleOrgangePrice();
             for (int i = 0; i < vendorAgents.Count; i++)
             {
-                vendorAgents[i].PurchaseOranges(wholesalePrice);
+                vendorAgents[i].Tick();
+                vendorAgents[i].PurchaseOrangesFromWholesaler(wholesalePrice);
 
                 vendorAgents[i].SetCurrentPrice();
             }
