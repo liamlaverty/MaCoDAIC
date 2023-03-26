@@ -3,7 +3,7 @@
     public interface IGameService
     {
 
-        void Load(int numberVendors, int numberConsumers);
+        void Load();
         void Start();
         void Stop();
     }

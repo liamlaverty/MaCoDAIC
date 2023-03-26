@@ -12,6 +12,8 @@
         private readonly IConsumerService _consumerService;
         private bool __running__ = false;
         private readonly int _MAX_TICKS_ = 100;
+        private readonly int _NUM_VENDORS = 10;
+        private readonly int _NUM_CONSUMERS = 10;
         
 
         public GameService(ITickService tickService, IEconomyService economyService,
@@ -25,11 +27,11 @@
             _consumerService = consumerService;
         }
 
-        public void Load(int numberVendors, int numberConsumers)
+        public void Load()
         {
             Console.WriteLine($"Game.Load called");
-            _vendorService.Load(numberVendors);
-            _consumerService.Load(numberConsumers);
+            _vendorService.Load(_NUM_VENDORS);
+            _consumerService.Load(_NUM_CONSUMERS);
             _reportService.ReportAllEntities();
             __running__ = true;
         }
