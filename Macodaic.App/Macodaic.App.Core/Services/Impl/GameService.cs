@@ -11,7 +11,7 @@
         private readonly IWholesalerService _wholesalerService;
         private readonly IConsumerService _consumerService;
         private bool __running__ = false;
-        private readonly int _MAX_TICKS_ = 5;
+        private readonly int _MAX_TICKS_ = 50;
         
 
         public GameService(ITickService tickService, IEconomyService economyService,
@@ -30,6 +30,7 @@
             Console.WriteLine($"Game.Load called");
             _vendorService.Load(numberVendors);
             _consumerService.Load(numberConsumers);
+            _reportService.ReportAllEntities();
             __running__ = true;
         }
 
@@ -37,10 +38,14 @@
         {
             while (__running__)
             {
-                Console.WriteLine($"\n----LOOPED {_tickService.CurrentTick}----");
+                Console.WriteLine($"\n----LOOP START REPORT {_tickService.CurrentTick}----");
 
                 // _tickService.TickAllEntities();
+                _reportService.ReportAllEntities();
+
                 _tickService.TickServices();
+                Console.WriteLine($"\n----LOOP END REPORT {_tickService.CurrentTick}----");
+
                 _reportService.ReportAllEntities();
 
 

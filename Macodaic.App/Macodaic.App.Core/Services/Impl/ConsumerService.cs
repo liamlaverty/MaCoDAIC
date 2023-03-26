@@ -26,7 +26,10 @@ namespace Macodaic.App.Core.Services.Impl
 
         public void Tick()
         {
-
+            for (int i = 0; i < consumerAgents.Count; i++)
+            {
+                consumerAgents[i].Tick();
+            }
         }
     }
 }

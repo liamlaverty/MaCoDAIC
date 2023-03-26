@@ -18,7 +18,9 @@ namespace Macodaic.App.Core.Helpers
         /// <returns></returns>
         internal static decimal Lerp(this decimal lerpFrom, decimal lerpTo, decimal lerpBy)
         {
-            return lerpFrom * (1 - lerpBy) + lerpTo * lerpBy;
+            lerpFrom = lerpFrom * (1 - lerpBy) + lerpTo * lerpBy;
+            // return result; 
+            return lerpFrom;
         }
 
     }

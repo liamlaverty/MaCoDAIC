@@ -7,7 +7,7 @@ namespace Macodaic.App.Core.Models
     {
         internal int Oranges { get; private set; }
 
-        private decimal MarginalUtility { get; set; }
+        private decimal MarginalUtilityOfOranges { get; set; }
 
         /// <summary>
         /// tracks the amount of money this consumer has
@@ -23,21 +23,24 @@ namespace Macodaic.App.Core.Models
 
         public ConsumerAgent()
         {
-            MarginalUtility = 1;
+            MarginalUtilityOfOranges = 1m;
+            AvailableFunds = 50m;
+            Oranges = 3;
         }
 
 
         public override void Tick()
         {
-            RestoreMarginalUtility();
+            // DepleteUtility();
             ConsumeOranges();
+            RestoreMarginalUtility();
 
             base.Tick();
         }
 
         public override void Report()
         {
-            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(MarginalUtility)}:{MarginalUtility} | {nameof(AvailableFunds)}:${AvailableFunds}");
+            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(Oranges)}:{Oranges} | {nameof(MarginalUtilityOfOranges)}:{MarginalUtilityOfOranges} | {nameof(Utility)}:{Utility} | {nameof(AvailableFunds)}:${AvailableFunds}");
             base.Report();
   
         }
@@ -50,11 +53,30 @@ namespace Macodaic.App.Core.Models
         /// </summary>
         private void RestoreMarginalUtility()
         {
-            MarginalUtility.Lerp(lerpTo: 1, lerpBy: 0.5m);
-            if (MarginalUtility > 1) { MarginalUtility = 1; }
+            MarginalUtilityOfOranges = MarginalUtilityOfOranges.Lerp(lerpTo: 1, lerpBy: 0.25m);
+            if (MarginalUtilityOfOranges > 0.99m) { MarginalUtilityOfOranges = 1; }
         }
 
-        
+        /// <summary>
+        ///  Reduces the Agen's marginal utility of oranges by 0.2
+        /// </summary>
+        private void DepleteMarginalUtilityOfOranges() 
+        {
+            MarginalUtilityOfOranges -= (decimal)0.2;
+            if (MarginalUtilityOfOranges < 0) { MarginalUtilityOfOranges = 0; }
+        }
+
+        /// <summary>
+        /// Gradually depletes the agent's utility
+        /// </summary>
+        private void DepleteUtility()
+        {
+            Utility.Lerp(lerpTo: 0, lerpBy: 0.1m);
+        }
+        private void IncreaseUtility()
+        {
+            Utility += MarginalUtilityOfOranges;
+        }
 
 
         /// <summary>
@@ -65,12 +87,14 @@ namespace Macodaic.App.Core.Models
         {
             while (Oranges > 0)
             {
-                Utility+= (Utility * MarginalUtility);
-                MarginalUtility -= (decimal)0.2;
+                // Utility+= (Utility * MarginalUtility);
+                IncreaseUtility();
+                DepleteMarginalUtilityOfOranges();
                 Oranges--;
 
-                if (MarginalUtility <= 0)
+                if (MarginalUtilityOfOranges <= 0)
                 {
+                    MarginalUtilityOfOranges = 0.00001m;
                     break;
                 }
             }
