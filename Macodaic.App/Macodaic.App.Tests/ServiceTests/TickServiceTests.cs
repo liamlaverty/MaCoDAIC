@@ -30,7 +30,7 @@ namespace Macodaic.App.Tests.ServiceTests
         {
             // Arrange
             // Act
-            var ticks = tickService.Ticks;
+            var ticks = tickService.CurrentTick;
             // Assert
             Assert.AreEqual(0, ticks);
         }
@@ -40,10 +40,10 @@ namespace Macodaic.App.Tests.ServiceTests
         public void TickService_TickAllEntities_IncreasesTicksByOne()
         {
             // Arrange
-            var ticksBefore = tickService.Ticks;
+            var ticksBefore = tickService.CurrentTick;
             // Act
             tickService.TickAllEntities();
-            var ticksAfter = tickService.Ticks;
+            var ticksAfter = tickService.CurrentTick;
             // Assert
             Assert.AreEqual(ticksBefore + 1, ticksAfter);
         }

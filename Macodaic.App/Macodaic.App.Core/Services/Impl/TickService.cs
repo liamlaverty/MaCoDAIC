@@ -5,7 +5,7 @@ namespace Macodaic.App.Core.Services.Impl
     public class TickService : ITickService
     {
         public Guid Id => new Guid();
-        public int Ticks { get; private set; } = 0;
+        public int CurrentTick { get; private set; } = 0;
         public List<ITickableEntity> TickableEntities { get; private set; }
 
 
@@ -16,7 +16,7 @@ namespace Macodaic.App.Core.Services.Impl
         }
         public void TickAllEntities()
         {
-            Ticks++;
+            CurrentTick++;
             for (int i = 0; i < TickableEntities.Count; i++)
             {
                 TickableEntities[i].Tick();

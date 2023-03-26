@@ -33,20 +33,17 @@
             __running__ = true;
         }
 
-        public void Report()
-        {
-            Console.WriteLine($"\n\ncurrent tick: {_tickService.Ticks}");
-            _reportService.ReportAllEntities();
-        }
-
         public void Start()
         {
             while (__running__)
             {
-                _tickService.TickAllEntities();
-                Report();
+                Console.WriteLine($"\n----LOOPED {_tickService.CurrentTick}----");
 
-                if (_tickService.Ticks == _MAX_TICKS_)
+                _tickService.TickAllEntities();
+                _reportService.ReportAllEntities();
+
+
+                if (_tickService.CurrentTick == _MAX_TICKS_)
                 {
                     Stop();
                 }

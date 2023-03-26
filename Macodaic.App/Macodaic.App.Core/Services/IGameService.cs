@@ -6,6 +6,5 @@
         void Load(int numberVendors, int numberConsumers);
         void Start();
         void Stop();
-        void Report();
     }
 }
