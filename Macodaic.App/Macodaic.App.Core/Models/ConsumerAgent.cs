@@ -1,4 +1,6 @@
-﻿namespace Macodaic.App.Core.Models
+﻿using Macodaic.App.Core.Helpers;
+
+namespace Macodaic.App.Core.Models
 
 {
     internal class ConsumerAgent : Agent
@@ -42,13 +44,17 @@
 
         /// <summary>
         /// A method at the end of each tick which slightly re-increases
-        /// marginal utility before the next round begins
+        /// marginal utility before the next round begins. 
+        /// 
+        /// Uses LERPing to increase by 50% each time
         /// </summary>
         private void RestoreMarginalUtility()
         {
-            MarginalUtility += (decimal)0.3;
+            MarginalUtility.Lerp(lerpTo: 1, lerpBy: 0.5m);
             if (MarginalUtility > 1) { MarginalUtility = 1; }
         }
+
+        
 
 
         /// <summary>
