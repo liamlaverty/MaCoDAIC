@@ -11,7 +11,7 @@
         private readonly IWholesalerService _wholesalerService;
         private readonly IConsumerService _consumerService;
         private bool __running__ = false;
-        private readonly int _MAX_TICKS_ = 50;
+        private readonly int _MAX_TICKS_ = 10;
         
 
         public GameService(ITickService tickService, IEconomyService economyService,

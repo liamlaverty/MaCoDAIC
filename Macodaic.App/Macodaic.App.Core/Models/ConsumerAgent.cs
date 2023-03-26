@@ -31,10 +31,6 @@ namespace Macodaic.App.Core.Models
 
         public override void Tick()
         {
-            // DepleteUtility();
-            ConsumeOranges();
-            RestoreMarginalUtility();
-
             base.Tick();
         }
 
@@ -51,7 +47,7 @@ namespace Macodaic.App.Core.Models
         /// 
         /// Uses LERPing to increase by 50% each time
         /// </summary>
-        private void RestoreMarginalUtility()
+        public void RestoreMarginalUtility()
         {
             MarginalUtilityOfOranges = MarginalUtilityOfOranges.Lerp(lerpTo: 1, lerpBy: 0.25m);
             if (MarginalUtilityOfOranges > 0.99m) { MarginalUtilityOfOranges = 1; }

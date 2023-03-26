@@ -29,6 +29,8 @@ namespace Macodaic.App.Core.Services.Impl
             for (int i = 0; i < consumerAgents.Count; i++)
             {
                 consumerAgents[i].Tick();
+                consumerAgents[i].ConsumeOranges();
+                consumerAgents[i].RestoreMarginalUtility();
             }
         }
     }
