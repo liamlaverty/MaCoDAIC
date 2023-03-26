@@ -2,7 +2,7 @@
 {
     public class WholesalerService : IWholesalerService
     {
-        private decimal _wholesaleOrgangePrice = 2.5m;
+        private decimal _wholesaleOrgangePrice = 3.36m;
         public WholesalerService()
         {
             

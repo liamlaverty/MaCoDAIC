@@ -11,7 +11,7 @@
         /// <summary>
         ///  list of prices of oranges from the wholesaler
         /// </summary>
-        private List<decimal> _recentWholesalePriceOfOranges;
+        internal List<decimal> _recentWholesalePriceOfOranges;
 
         
  
@@ -25,18 +25,28 @@
 
         public override void Tick()
         {
-
             base.Tick();
         }
 
+
+        /// <summary>
+        ///  purchases the maximum number of oranges possible from the 
+        ///  wholesaler
+        /// </summary>
+        /// <param name="wholesalerPrice"></param>
         public void PurchaseOranges (decimal wholesalerPrice)
         {
             _recentWholesalePriceOfOranges.Add(wholesalerPrice);
             if (AvailableFunds > wholesalerPrice)
             {
+                int numOrangesToPurchase = Convert.ToInt32(Math.Floor(AvailableFunds / wholesalerPrice));
 
+                AvailableFunds -= numOrangesToPurchase * wholesalerPrice;
+                OrangeInventory += numOrangesToPurchase; 
             }
         }
+
+       
 
 
 

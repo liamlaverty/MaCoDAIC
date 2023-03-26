@@ -81,5 +81,63 @@ namespace Macodaic.App.Tests.ModelTests
             // Assert
             Assert.IsTrue(hasUniqueID);
         }
+
+
+        // method to test if purchaseOranges increases the number of oranges in the inventory
+        [TestMethod]
+        public void VendorAgent_PurchaseOranges_IncreasesInventory()
+        {
+            // Arrange
+            var vendorAgent = new VendorAgent(100);
+            var initialInventory = vendorAgent.OrangeInventory;
+            // Act
+            vendorAgent.PurchaseOranges(1);
+            var finalInventory = vendorAgent.OrangeInventory;
+            // Assert
+            Assert.IsTrue(finalInventory > initialInventory);
+        }
+
+        // method to test if purchaseOranges decreases the amount of funds available
+        [TestMethod]
+        public void VendorAgent_PurchaseOranges_DecreasesFunds()
+        {
+            // Arrange
+            var vendorAgent = new VendorAgent(100);
+            var initialFunds = vendorAgent.AvailableFunds;
+            // Act
+            vendorAgent.PurchaseOranges(1);
+            var finalFunds = vendorAgent.AvailableFunds;
+            // Assert
+            Assert.IsTrue(finalFunds < initialFunds);
+        }
+
+        // method to test if purchaseOranges adds the price of the oranges to the list of recent prices
+        [TestMethod]
+        public void VendorAgent_PurchaseOranges_AddsPriceToList()
+        {
+            // Arrange
+            var vendorAgent = new VendorAgent(100);
+            var initialListCount = vendorAgent._recentWholesalePriceOfOranges.Count;
+            // Act
+            vendorAgent.PurchaseOranges(1);
+            var finalListCount = vendorAgent._recentWholesalePriceOfOranges.Count;
+            // Assert
+            Assert.IsTrue(finalListCount > initialListCount);
+        }
+
+        // method to test PurchaseOranges cannot purchase more oranges than the vendor has funds for
+        [TestMethod]
+        public void VendorAgent_PurchaseOranges_CannotPurchaseMoreThanFunds()
+        {
+            // Arrange
+            var vendorAgent = new VendorAgent(100);
+            var initialInventory = vendorAgent.OrangeInventory;
+            // Act
+            vendorAgent.PurchaseOranges(1000);
+            var finalInventory = vendorAgent.OrangeInventory;
+            // Assert
+            Assert.IsTrue(finalInventory == initialInventory);
+        }
+        
     }
 }

@@ -46,14 +46,5 @@ namespace Macodaic.App.Core.Services.Impl
                 vendorAgents[i].SetCurrentPrice();
             }
         }
-
-
-        // Method to call SetPrices on each vendorAgent
-        private void SetPricesForAllVendors()
-        {
-            
-        }
-
-
     }
 }
