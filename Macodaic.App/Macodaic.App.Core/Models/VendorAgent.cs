@@ -59,7 +59,7 @@
         {
             _currentPrice = MarginalCostOfOperations + _recentWholesalePriceOfOranges.Last();
         }
-      
+        public decimal GetCurrentPrice(){ return _currentPrice; }
 
         /// <summary>
         /// 

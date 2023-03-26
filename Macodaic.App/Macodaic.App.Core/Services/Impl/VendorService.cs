@@ -31,6 +31,13 @@ namespace Macodaic.App.Core.Services.Impl
             }
         }
 
+        public List<VendorOffer> GetPriceList()
+        {
+            return vendorAgents.Select(
+                c => new VendorOffer(c.Id, c.OrangeInventory, c.GetCurrentPrice()))
+                .ToList();
+        }
+
 
         /// <summary>
         ///  For each vendor, calls SetPrices, then collects all vendor pices

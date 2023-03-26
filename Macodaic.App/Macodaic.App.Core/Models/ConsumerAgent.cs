@@ -29,11 +29,6 @@ namespace Macodaic.App.Core.Models
         }
 
 
-        public override void Tick()
-        {
-            base.Tick();
-        }
-
         public override void Report()
         {
             Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(Oranges)}:{Oranges} | {nameof(MarginalUtilityOfOranges)}:{MarginalUtilityOfOranges} | {nameof(Utility)}:{Utility} | {nameof(AvailableFunds)}:${AvailableFunds}");
@@ -76,6 +71,33 @@ namespace Macodaic.App.Core.Models
 
 
         /// <summary>
+        /// The consumer picks from the list of vendors the 
+        /// 
+        /// </summary>
+        /// <param name="vendorPriceList"></param>
+        /// <returns></returns>
+        public List<ConsumerPurchaseRequest> GenerateTransactionPreferences(List<VendorOffer> vendorPriceList)
+        {
+            var result = new List<ConsumerPurchaseRequest>();
+            if (AvailableFunds > 0)
+            {
+                if (vendorPriceList.Any(c => c.PricePerOrange < AvailableFunds))
+                {
+                    int quantityToPurchase = 1;
+                    var vendorOfferPreference = vendorPriceList.First(c => c.PricePerOrange < AvailableFunds);
+                    result.Add(new ConsumerPurchaseRequest(
+                        Id, 
+                        vendorOfferPreference.VendorId,
+                        quantityToPurchase,
+                        quantityToPurchase * vendorOfferPreference.PricePerOrange));
+                }
+            }
+            return result;
+        }
+
+
+
+        /// <summary>
         /// Consumes oranges, reduces the amount of marginal utility gained from 
         /// each additional orange consumed. If marginal utility is at or below 0, 
         /// </summary>
@@ -94,8 +116,23 @@ namespace Macodaic.App.Core.Models
                     break;
                 }
             }
-        }       
+        }
 
-       
+
+
+        /// <summary>
+        /// Completes a transaction, subtracts AvailableFunds, and adds 
+        /// to the number of oranges
+        /// </summary>
+        /// <param name="request"></param>
+        internal void SatisfyTransaction(ConsumerPurchaseRequest request)
+        {
+            AvailableFunds -= request.ExpectedPrice;
+            if (AvailableFunds < 0)
+            {
+                throw new Exception("Transaction took a consumer below $0.00 in funds");
+            }
+            Oranges += request.NumberOfOrangesRequested;
+        }
     }
 }
