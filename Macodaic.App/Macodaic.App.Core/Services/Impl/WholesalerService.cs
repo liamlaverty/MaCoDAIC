@@ -2,10 +2,16 @@
 {
     public class WholesalerService : IWholesalerService
     {
-        private decimal _wholesaleOrgangePrice = 3.36m;
+        private decimal _wholesaleOrgangePrice { get; set; }
+
         public WholesalerService()
         {
             
+        }
+
+        public void Load(decimal initWholesaleOrgangePrice)
+        {
+            _wholesaleOrgangePrice = initWholesaleOrgangePrice;
         }
 
         public void Tick()

@@ -20,12 +20,12 @@ namespace Macodaic.App.Core.Services.Impl
         }
 
 
-        public void Load(int vendorCount)
+        public void Load(int vendorCount, decimal vendorInitialFunds)
         {
             vendorAgents = new List<VendorAgent>(new VendorAgent[vendorCount]);
             for (int i = 0; i < vendorAgents.Count; i++)
             {
-                var vendor = new VendorAgent(25);
+                var vendor = new VendorAgent(vendorInitialFunds);
                 vendorAgents[i] = vendor;
                 _reportService.RegisterReportableEntity(vendor);
             }

@@ -54,9 +54,9 @@
             if (AvailableFunds > wholesalerPrice)
             {
                 int numOrangesToPurchase = Convert.ToInt32(Math.Floor(AvailableFunds / wholesalerPrice));
-                if ( numOrangesToPurchase > 5) {
-                    numOrangesToPurchase = 5;
-                }
+                //if ( numOrangesToPurchase > 50) {
+                //    numOrangesToPurchase = 50;
+                //}
                 AvailableFunds -= numOrangesToPurchase * wholesalerPrice;
                 OrangeInventory += numOrangesToPurchase; 
             }

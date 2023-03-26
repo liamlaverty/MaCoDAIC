@@ -32,7 +32,7 @@ namespace Macodaic.App.Core.Services.Impl
 
             for (int i = 0; i < consumerAgents.Count; i++)
             {
-                consumerAgents[i].TopUpFinances(1.5m);
+                consumerAgents[i].TopUpFinances(1.9m);
 
                 consumerAgents[i].Tick();
                 List<ConsumerPurchaseRequest> consumerTransactionPreferences = 

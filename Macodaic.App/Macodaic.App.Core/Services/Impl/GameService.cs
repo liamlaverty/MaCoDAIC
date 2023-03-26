@@ -12,25 +12,29 @@
         private readonly IConsumerService _consumerService;
         private bool __running__ = false;
         private readonly int _MAX_TICKS_ = 100;
-        private readonly int _NUM_VENDORS = 10;
-        private readonly int _NUM_CONSUMERS = 10;
-        
+        private readonly int _NUM_VENDORS = 5;
+        private readonly int _NUM_CONSUMERS = 100;
+        private readonly int _VENDOR_INIT_FUNDS_ = 1000;
+        private readonly decimal _WHOLESALER_ORANGE_PRICE = 3.36m;
+
 
         public GameService(ITickService tickService, IEconomyService economyService,
             IReportService reportService, IVendorService vendorService, 
-            IConsumerService consumerService)
+            IConsumerService consumerService, IWholesalerService wholesalerService)
         {
             _tickService = tickService;
             _economyService = economyService;
             _reportService = reportService;
             _vendorService = vendorService;
             _consumerService = consumerService;
+            _wholesalerService = wholesalerService;
         }
 
         public void Load()
         {
             Console.WriteLine($"Game.Load called");
-            _vendorService.Load(_NUM_VENDORS);
+            _wholesalerService.Load(_WHOLESALER_ORANGE_PRICE);
+            _vendorService.Load(_NUM_VENDORS, _VENDOR_INIT_FUNDS_);
             _consumerService.Load(_NUM_CONSUMERS);
             _reportService.ReportAllEntities();
             __running__ = true;
