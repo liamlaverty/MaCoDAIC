@@ -39,16 +39,19 @@
             {
                 Console.WriteLine($"\n----LOOPED {_tickService.CurrentTick}----");
 
-                _tickService.TickAllEntities();
+                // _tickService.TickAllEntities();
+                _tickService.TickServices();
                 _reportService.ReportAllEntities();
+
+
 
 
                 if (_tickService.CurrentTick == _MAX_TICKS_)
                 {
                     Stop();
                 }
+                _tickService.UpdateTick();
             }
-            Stop();
         }
 
         public void Stop()

@@ -8,6 +8,9 @@ namespace Macodaic.App.Core.Services
         int CurrentTick { get; }
 
         void RegisterTickableEntity(ITickableEntity tickableEntity);
+        public void UpdateTick();
+
         void TickAllEntities();
+        void TickServices();
     }
 }

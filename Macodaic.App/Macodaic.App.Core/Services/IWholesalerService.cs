@@ -2,5 +2,10 @@
 {
     public interface IWholesalerService
     {
+        void Tick();
+        
+        void SetWholesaleOrgangePrice();
+
+        decimal GetWholesaleOrgangePrice();
     }
 }

@@ -4,20 +4,14 @@ namespace Macodaic.App.Core.Services.Impl
 {
     public class ConsumerService : IConsumerService
     {
-        private readonly ITickService _tickService;
         private readonly IReportService _reportService;
-        private readonly IVendorService _vendorService;
 
         internal List<ConsumerAgent> consumerAgents { get; private set; }
 
-        public ConsumerService(ITickService tickService,
-            IReportService reportService,
-            IVendorService vendorService)
+        public ConsumerService(IReportService reportService)
         {
-            _tickService = tickService;
             _reportService = reportService;
             consumerAgents = new List<ConsumerAgent>();
-            _vendorService = vendorService;
         }
         public void Load(int consumerCount)
         {
@@ -26,7 +20,6 @@ namespace Macodaic.App.Core.Services.Impl
             {
                 var consumer = new ConsumerAgent();
                 consumerAgents[i] = consumer;
-                _tickService.RegisterTickableEntity(consumer);
                 _reportService.RegisterReportableEntity(consumer);
             }
         }

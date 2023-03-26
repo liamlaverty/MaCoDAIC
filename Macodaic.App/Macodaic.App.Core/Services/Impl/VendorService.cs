@@ -4,19 +4,19 @@ namespace Macodaic.App.Core.Services.Impl
 {
     public class VendorService : IVendorService
     {
-        private readonly ITickService _tickService;
         private readonly IReportService _reportService;
+        private readonly IWholesalerService _wholesalerService;
 
         internal List<VendorAgent> vendorAgents { get; private set; }
 
 
-        public VendorService(ITickService tickService,
-            IReportService reportService)
+        public VendorService(IReportService reportService,
+            IWholesalerService wholesalerService)
         {
-            _tickService = tickService;
             _reportService = reportService;
 
             vendorAgents = new List<VendorAgent>();
+            _wholesalerService = wholesalerService;
         }
 
 
@@ -27,9 +27,31 @@ namespace Macodaic.App.Core.Services.Impl
             {
                 var vendor = new VendorAgent(500);
                 vendorAgents[i] = vendor;
-                _tickService.RegisterTickableEntity(vendor);
                 _reportService.RegisterReportableEntity(vendor);
             }
+        }
+
+
+        /// <summary>
+        ///  For each vendor, calls SetPrices, then collects all vendor pices
+        ///  into a dictionary
+        /// </summary>
+        public void Tick()
+        {
+            decimal wholesalePrice = _wholesalerService.GetWholesaleOrgangePrice();
+            for (int i = 0; i < vendorAgents.Count; i++)
+            {
+                vendorAgents[i].PurchaseOranges(wholesalePrice);
+
+                vendorAgents[i].SetCurrentPrice();
+            }
+        }
+
+
+        // Method to call SetPrices on each vendorAgent
+        private void SetPricesForAllVendors()
+        {
+            
         }
 
 

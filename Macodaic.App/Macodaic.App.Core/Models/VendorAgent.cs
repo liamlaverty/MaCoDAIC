@@ -6,6 +6,9 @@
         internal decimal MarginalCostOfOperations { get; }
         internal decimal AvailableFunds { get; private set; }
 
+        private decimal _currentPrice = 0;
+        private decimal _recentPriceOfOranges = 0;
+
         
  
 
@@ -21,6 +24,18 @@
             base.Tick();
         }
 
+        public void PurchaseOranges (decimal wholesalerPrice)
+        {
+
+        }
+
+        /// <summary>
+        ///  Sets the current price of oranges
+        /// </summary>
+        public void SetCurrentPrice()
+        {
+            _currentPrice = MarginalCostOfOperations + _recentPriceOfOranges;
+        }
       
 
         /// <summary>

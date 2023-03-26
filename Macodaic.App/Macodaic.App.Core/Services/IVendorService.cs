@@ -3,6 +3,7 @@
     public interface IVendorService
     {
         void Load(int vendorCount);
+        void Tick();
     }
 
 }
