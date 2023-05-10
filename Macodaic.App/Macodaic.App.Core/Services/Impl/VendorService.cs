@@ -4,34 +4,79 @@ namespace Macodaic.App.Core.Services.Impl
 {
     public class VendorService : IVendorService
     {
-        private readonly ITickService _tickService;
         private readonly IReportService _reportService;
+        private readonly IWholesalerService _wholesalerService;
 
         internal List<VendorAgent> vendorAgents { get; private set; }
 
 
-        public VendorService(ITickService tickService,
-            IReportService reportService)
+        public VendorService(IReportService reportService,
+            IWholesalerService wholesalerService)
         {
-            _tickService = tickService;
             _reportService = reportService;
 
             vendorAgents = new List<VendorAgent>();
+            _wholesalerService = wholesalerService;
         }
 
 
-        public void Load(int vendorCount)
+        public void Load(int vendorCount, decimal vendorInitialFunds)
         {
             vendorAgents = new List<VendorAgent>(new VendorAgent[vendorCount]);
             for (int i = 0; i < vendorAgents.Count; i++)
             {
-                var vendor = new VendorAgent(500);
+                var vendor = new VendorAgent(vendorInitialFunds);
                 vendorAgents[i] = vendor;
-                _tickService.RegisterTickableEntity(vendor);
                 _reportService.RegisterReportableEntity(vendor);
             }
         }
 
+        public List<VendorOffer> GetPriceList()
+        {
+            return vendorAgents.Select(
+                c => new VendorOffer(c.Id, c.OrangeInventory, c.GetCurrentPrice()))
+                .ToList();
+        }
 
+
+        /// <summary>
+        ///  For each vendor, calls SetPrices, then collects all vendor pices
+        ///  into a dictionary
+        /// </summary>
+        public void Tick()
+        {
+            decimal wholesalePrice = _wholesalerService.GetWholesaleOrgangePrice();
+            for (int i = 0; i < vendorAgents.Count; i++)
+            {
+                vendorAgents[i].Tick();
+                vendorAgents[i].PurchaseOrangesFromWholesaler(wholesalePrice);
+
+                vendorAgents[i].SetCurrentPrice();
+            }
+        }
+
+        public bool CanSatisfyRequest(ConsumerPurchaseRequest request)
+        {
+            var vendor = vendorAgents.First(c => c.Id == request.VendorId);
+            if (vendor == null)
+            {
+                throw new ArgumentNullException($"{nameof(vendor)} with ID {request.VendorId} was null");
+            }
+            if (vendor.OrangeInventory < request.NumberOfOrangesRequested)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void SatisfyTransactionOnVendorSide(ConsumerPurchaseRequest request)
+        {
+            var vendor = vendorAgents.First(c => c.Id == request.VendorId);
+            if (vendor == null)
+            {
+                throw new ArgumentNullException($"{nameof(vendor)} with ID {request.VendorId} was null");
+            }
+            vendor.VendOranges(request.NumberOfOrangesRequested, request.ExpectedTotalPriceOfTransaction);
+        }
     }
 }

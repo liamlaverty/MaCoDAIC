@@ -21,7 +21,12 @@ namespace Macodaic.App.Tests.ServiceTests
         [TestInitialize]
         public void TestInitialize()
         {
-            tickService = new TickService();
+            // mock of VendorService 
+            var mockVendorService = new Mock<IVendorService>();
+
+            // mock of ConsumerService
+            var mockConsumerService = new Mock<IConsumerService>();
+            tickService = new TickService(mockConsumerService.Object, mockVendorService.Object);
         }
 
         // test method to check that Ticks is zero after instantiation of TickService
@@ -30,23 +35,24 @@ namespace Macodaic.App.Tests.ServiceTests
         {
             // Arrange
             // Act
-            var ticks = tickService.Ticks;
+            var ticks = tickService.CurrentTick;
             // Assert
             Assert.AreEqual(0, ticks);
         }
 
-        // test methdo to check that after TickAllEntities has happened, Ticks has increased by one
+        // test method to check if UpdateTick increases Ticks by one
         [TestMethod]
-        public void TickService_TickAllEntities_IncreasesTicksByOne()
+        public void TickService_UpdateTick_IncreasesTicksByOne()
         {
             // Arrange
-            var ticksBefore = tickService.Ticks;
+            var ticksBefore = tickService.CurrentTick;
             // Act
-            tickService.TickAllEntities();
-            var ticksAfter = tickService.Ticks;
+            tickService.UpdateTick();
+            var ticksAfter = tickService.CurrentTick;
             // Assert
             Assert.AreEqual(ticksBefore + 1, ticksAfter);
         }
+
 
         // method to test TickableEntities list is instantiated after constructor
         [TestMethod]

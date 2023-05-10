@@ -12,46 +12,57 @@
         private readonly IConsumerService _consumerService;
         private bool __running__ = false;
         private readonly int _MAX_TICKS_ = 100;
-        
+        private readonly int _NUM_VENDORS = 5;
+        private readonly int _NUM_CONSUMERS = 100;
+        private readonly int _VENDOR_INIT_FUNDS_ = 1000;
+        private readonly decimal _WHOLESALER_ORANGE_PRICE = 3.36m;
+
 
         public GameService(ITickService tickService, IEconomyService economyService,
             IReportService reportService, IVendorService vendorService, 
-            IConsumerService consumerService)
+            IConsumerService consumerService, IWholesalerService wholesalerService)
         {
             _tickService = tickService;
             _economyService = economyService;
             _reportService = reportService;
             _vendorService = vendorService;
             _consumerService = consumerService;
+            _wholesalerService = wholesalerService;
         }
 
-        public void Load(int numberVendors, int numberConsumers)
+        public void Load()
         {
             Console.WriteLine($"Game.Load called");
-            _vendorService.Load(numberVendors);
-            _consumerService.Load(numberConsumers);
-            __running__ = true;
-        }
-
-        public void Report()
-        {
-            Console.WriteLine($"\n\ncurrent tick: {_tickService.Ticks}");
+            _wholesalerService.Load(_WHOLESALER_ORANGE_PRICE);
+            _vendorService.Load(_NUM_VENDORS, _VENDOR_INIT_FUNDS_);
+            _consumerService.Load(_NUM_CONSUMERS);
             _reportService.ReportAllEntities();
+            __running__ = true;
         }
 
         public void Start()
         {
             while (__running__)
             {
-                _tickService.TickAllEntities();
-                Report();
+                Console.WriteLine($"\n----LOOP START REPORT {_tickService.CurrentTick}----");
 
-                if (_tickService.Ticks == _MAX_TICKS_)
+                // _tickService.TickAllEntities();
+                _reportService.ReportAllEntities();
+
+                _tickService.TickServices();
+                Console.WriteLine($"\n----LOOP END REPORT {_tickService.CurrentTick}----");
+
+                _reportService.ReportAllEntities();
+
+
+
+
+                if (_tickService.CurrentTick == _MAX_TICKS_)
                 {
                     Stop();
                 }
+                _tickService.UpdateTick();
             }
-            Stop();
         }
 
         public void Stop()

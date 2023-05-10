@@ -1,11 +1,14 @@
-﻿namespace Macodaic.App.Core.Models
+﻿using Macodaic.App.Core.Helpers;
+
+namespace Macodaic.App.Core.Models
 
 {
     internal class ConsumerAgent : Agent
     {
         internal int Oranges { get; private set; }
+        internal int TotalOrangesConsumed { get; private set; }
 
-        private decimal MarginalUtility { get; set; }
+        private decimal MarginalUtilityOfOranges { get; set; }
 
         /// <summary>
         /// tracks the amount of money this consumer has
@@ -21,34 +24,54 @@
 
         public ConsumerAgent()
         {
-            MarginalUtility = 1;
+            MarginalUtilityOfOranges = 1m;
+            AvailableFunds = 0;
+            Oranges = 1;
         }
 
-
-        public override void Tick()
-        {
-            RestoreMarginalUtility();
-            ConsumeOranges();
-
-            base.Tick();
-        }
 
         public override void Report()
         {
-            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(MarginalUtility)}:{MarginalUtility} | {nameof(AvailableFunds)}:${AvailableFunds}");
+            Console.WriteLine($"{nameof(ConsumerAgent)}:{Id} | {nameof(Oranges)}:{Oranges} | {nameof(TotalOrangesConsumed)}:{TotalOrangesConsumed} | {nameof(MarginalUtilityOfOranges)}:{MarginalUtilityOfOranges.ToString("0.##")} | {nameof(Utility)}:{Utility.ToString("0.##")} | {nameof(AvailableFunds)}:${AvailableFunds.ToString("0.##")}");
             base.Report();
   
         }
 
         /// <summary>
-        /// A method at the end of each tick which slightly re-increases
-        /// marginal utility before the next round begins
+        /// A method at the start of each tick which slightly re-increases
+        /// marginal utility before the next round begins. 
+        /// 
+        /// Uses LERPing to increase by 50% each time
         /// </summary>
-        private void RestoreMarginalUtility()
+        public void RestoreMarginalUtility()
         {
-            MarginalUtility += (decimal)0.3;
-            if (MarginalUtility > 1) { MarginalUtility = 1; }
+            MarginalUtilityOfOranges = MarginalUtilityOfOranges.Lerp(lerpTo: 1, lerpBy: 0.25m);
+            if (MarginalUtilityOfOranges > 0.99m) { MarginalUtilityOfOranges = 1; }
         }
+
+        /// <summary>
+        ///  Reduces the Agen's marginal utility of oranges by 0.2
+        /// </summary>
+        private void DepleteMarginalUtilityOfOranges() 
+        {
+            MarginalUtilityOfOranges -= (decimal)0.2;
+            if (MarginalUtilityOfOranges < 0) { MarginalUtilityOfOranges = 0; }
+        }
+
+        /// <summary>
+        /// Gradually depletes the agent's utility
+        /// </summary>
+        private void DepleteUtility()
+        {
+            Utility.Lerp(lerpTo: 0, lerpBy: 0.1m);
+        }
+        private void IncreaseUtility()
+        {
+            Utility += MarginalUtilityOfOranges;
+        }
+
+
+       
 
 
         /// <summary>
@@ -59,17 +82,64 @@
         {
             while (Oranges > 0)
             {
-                Utility+= (Utility * MarginalUtility);
-                MarginalUtility -= (decimal)0.2;
+                // Utility+= (Utility * MarginalUtility);
+                IncreaseUtility();
+                DepleteMarginalUtilityOfOranges();
                 Oranges--;
+                TotalOrangesConsumed++;
 
-                if (MarginalUtility <= 0)
+                if (MarginalUtilityOfOranges <= 0)
                 {
+                    MarginalUtilityOfOranges = 0.00001m;
                     break;
                 }
             }
-        }       
+        }
 
-       
+        /// <summary>
+        /// The consumer picks from the list of vendors the 
+        /// 
+        /// </summary>
+        /// <param name="vendorPriceList"></param>
+        /// <returns></returns>
+        public List<ConsumerPurchaseRequest> GenerateTransactionPreferences(List<VendorOffer> vendorPriceList)
+        {
+            var result = new List<ConsumerPurchaseRequest>();
+            if (AvailableFunds > 0)
+            {
+                if (vendorPriceList.Any(c => c.PricePerOrange < AvailableFunds))
+                {
+                    int quantityToPurchase = 1;
+                    var vendorOfferPreference = vendorPriceList.OrderBy(c => c.PricePerOrange).First(c => c.PricePerOrange < AvailableFunds);
+                    result.Add(new ConsumerPurchaseRequest(
+                        Id,
+                        vendorOfferPreference.VendorId,
+                        quantityToPurchase,
+                        quantityToPurchase * vendorOfferPreference.PricePerOrange));
+                }
+            }
+            return result;
+        }
+
+
+        /// <summary>
+        /// Completes a transaction, subtracts AvailableFunds, and adds 
+        /// to the number of oranges
+        /// </summary>
+        /// <param name="request"></param>
+        internal void SatisfyTransactionOnConsumerSide(ConsumerPurchaseRequest request)
+        {
+            AvailableFunds -= request.ExpectedTotalPriceOfTransaction;
+            if (AvailableFunds < 0)
+            {
+                throw new Exception("Transaction took a consumer below $0.00 in funds");
+            }
+            Oranges += request.NumberOfOrangesRequested;
+        }
+
+        internal void TopUpFinances(decimal income)
+        {
+            AvailableFunds += income;
+        }
     }
 }

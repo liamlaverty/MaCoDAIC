@@ -25,5 +25,5 @@ var host = Host.CreateDefaultBuilder(args)
 
 
 var _gameService = host.Services.GetService<IGameService>();
-_gameService.Load(numberVendors: 2, numberConsumers: 3);
+_gameService.Load();
 _gameService.Start();
