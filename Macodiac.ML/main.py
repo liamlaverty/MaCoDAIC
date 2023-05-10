@@ -20,7 +20,7 @@ class Main():
         self.log_path =  os.path.join('Macodiac.ML', 'training','results','Logs')
         self.save_path =  os.path.join('Macodiac.ML', 'training','results','saved_models', 'model')
         self.env = MacodiacEnvironment()
-        self.numTrainingIterations = 10_000
+        self.numTrainingIterations = 100_000
         self.numEpisodes = 5
 
 
@@ -57,6 +57,7 @@ class Main():
         if self.__MODE_RANDOMSAMPLE__:
             self.run_project_with_rand_test(self.env, self.numEpisodes)
         else:
+            self.policy_evaluation(model, self.env, self.numEpisodes)
             self.run_project(self.env, self.numEpisodes, model)
 
 
@@ -121,7 +122,7 @@ class Main():
         model.learn(total_timesteps=numTimesteps)
         return model
 
-    def policy_evaluation(model, env: MacodiacEnvironment, numEpisodes:int=50):
+    def policy_evaluation(self, model, env: MacodiacEnvironment, numEpisodes:int=50):
         """
         Prints a policy evaluation, including the mean episode reward
         and the standard deviation
