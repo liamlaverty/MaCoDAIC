@@ -1,7 +1,4 @@
 
-
-
-
 class MacodiacEnvironment:
     """
     Builds a profit maximising agent
@@ -23,7 +20,7 @@ class MacodiacEnvironment:
         self.state += action - 1
         self.environment_timesteps -=1
 
-        
+
 
         pass
 
