@@ -17,11 +17,11 @@ class Main():
         """
         init the class
         """
-        self.log_path =  os.path.join('training', 'results', 'logs', 'shower')
-        self.save_path =  os.path.join('training', 'results', 'saved_models', 'shower')
+        self.log_path =  os.path.join('Macodiac.ML', 'training','results','Logs')
+        self.save_path =  os.path.join('Macodiac.ML', 'training','results','saved_models', 'model')
         self.env = MacodiacEnvironment()
         self.numTrainingIterations = 1_000
-        self.numEpisodes = 50
+        self.numEpisodes = 5
 
 
         # set to true if you want to load an existing model
@@ -36,7 +36,7 @@ class Main():
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = True
+        self.__MODE_RANDOMSAMPLE__ = False
 
 
     def Run(self):
@@ -122,6 +122,14 @@ class Main():
         return model
 
     def policy_evaluation(model, env: MacodiacEnvironment, numEpisodes:int=50):
+        """
+        Prints a policy evaluation, including the mean episode reward
+        and the standard deviation
+
+        @param model:       The model to be evaluated
+        @param env:         The environment to evaluate the model against
+        @param numEpisodes: The count of episodes to evaluate against        
+        """
         print('\nevalResult:(mean episode reward, standard deviation)')
         print(f'evalResult:{evaluate_policy(model, env, n_eval_episodes=numEpisodes)}\n')
 
@@ -132,7 +140,7 @@ class Main():
         Saves a model to a given path
 
         @param model:       The model to save
-        @param path:        The path to save to
+        @param modelPath:   The path to save to
         """
         model.save(modelPath)    
     
@@ -142,7 +150,7 @@ class Main():
         Saves a model to a given path
 
         @param model:       The model to save
-        @param path:        The path to save to
+        @param modelPath:   The modelPath to save to
         """
         model.save(modelPath)
 
