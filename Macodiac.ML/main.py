@@ -1,5 +1,15 @@
 import os
+import gymnasium as gym
+from gymnasium import Env
+# use `gym.spaces` here, even though we're using `gymnasium`
+# https://stackoverflow.com/questions/75108957/assertionerror-the-algorithm-only-supports-class-gym-spaces-box-box-as-acti
+from gym import spaces
+import numpy as np
+import random
 from environment import MacodiacEnvironment
+
+
+from stable_baselines3 import PPO
 
 
 class Main():
@@ -32,24 +42,35 @@ class Main():
             model = self.train_model(self.env,
                                      self.numTrainingIterations)
 
-        self.run_project()
+        self.run_project_with_rand_test(self.env, self.numEpisodes)
 
-    def run_project_with_rand_test(self):
+    def run_project_with_rand_test(self, env:MacodiacEnvironment, numEpisodes:int):
         """
         Runs the project with random sampling, instead
         of a model
         """
-        pass
+        for episode in range(numEpisodes):
+            obs = env.reset()
+            done = False
+            score = 0
+            while not done:
+                env.render()
+                action = env.action_space.sample()
+                obs, reward, done, info = env.step(action)
+                score += reward
+            print(f'Episode:{episode} | Score:{score}')
+        env.close()
 
-    def run_project(self):
+    def run_project(self, numEpisodes: int):
         """
         Runs the project with a prebuilt model
         """
         pass
 
     def create_model(self, env: MacodiacEnvironment, log_path: str):
-        print('create_model not implemented')
-        pass
+        model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=log_path)
+        return model
+
 
     def load_model(self, env: MacodiacEnvironment, save_path: str):
         print('load_model not implemented')
