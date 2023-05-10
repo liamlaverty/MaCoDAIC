@@ -57,7 +57,7 @@ class Main():
         if self.__MODE_RANDOMSAMPLE__:
             self.run_project_with_rand_test(self.env, self.numEpisodes)
         else:
-            self.run_project(self.env, self.numEpisodes)
+            self.run_project(self.env, self.numEpisodes, model)
 
 
     def run_project_with_rand_test(self, env:MacodiacEnvironment, numEpisodes:int):
@@ -96,7 +96,7 @@ class Main():
             score = 0
             while not done:
                 #env.render()
-                action, _discard = model.preduct(obs)
+                action, _discard = model.predict(obs)
                 obs, reward, isTerminal, info = env.step(action)
                 score += reward
 
