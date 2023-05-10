@@ -20,7 +20,7 @@ class Main():
         self.log_path =  os.path.join('Macodiac.ML', 'training','results','Logs')
         self.save_path =  os.path.join('Macodiac.ML', 'training','results','saved_models', 'model')
         self.env = MacodiacEnvironment()
-        self.numTrainingIterations = 1_000
+        self.numTrainingIterations = 10_000
         self.numEpisodes = 5
 
 
@@ -29,7 +29,7 @@ class Main():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = False
+        self.__MODE_LOADMODEL__ = True
 
         # set to true if you want to train and then save the model
         self.__MODE_TRAINMODEL__ = True
@@ -153,6 +153,7 @@ class Main():
         @param modelPath:   The modelPath to save to
         """
         model.save(modelPath)
+        return model
 
 main = Main()
 main.Run()
