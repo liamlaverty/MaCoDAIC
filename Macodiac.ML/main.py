@@ -3,7 +3,7 @@ import gymnasium as gym
 from gymnasium import Env
 from environment import MacodiacEnvironment
 from stable_baselines3.common.evaluation import evaluate_policy
-
+import numpy as np
 
 
 
@@ -19,9 +19,9 @@ class Main():
         """
         self.log_path =  os.path.join('Macodiac.ML', 'training','results','Logs')
         self.save_path =  os.path.join('Macodiac.ML', 'training','results','saved_models', 'model')
-        self.env = MacodiacEnvironment()
+        self.env = MacodiacEnvironment(envTimesteps=100)
         self.numTrainingIterations = 100_000
-        self.numEpisodes = 5
+        self.numEpisodes = 10
 
 
         # set to true if you want to load an existing model
@@ -46,7 +46,7 @@ class Main():
         model = self.create_model(self.env, self.log_path)
 
         if self.__MODE_LOADMODEL__:
-            model = self.load_model(model, self.save_path)
+            model = self.load_model(self.env, model, self.save_path)
 
         if self.__MODE_TRAINMODEL__: 
             model = self.train_model(model,
@@ -57,8 +57,8 @@ class Main():
         if self.__MODE_RANDOMSAMPLE__:
             self.run_project_with_rand_test(self.env, self.numEpisodes)
         else:
-            self.policy_evaluation(model, self.env, self.numEpisodes)
             self.run_project(self.env, self.numEpisodes, model)
+            self.policy_evaluation(model, self.env, self.numEpisodes)
 
 
     def run_project_with_rand_test(self, env:MacodiacEnvironment, numEpisodes:int):
@@ -79,7 +79,7 @@ class Main():
                 obs, reward, isTerminal, info = env.step(action)
                 score += reward
                 done = isTerminal
-            print(f'Episode:{episode} | Score:{score}')
+            print(f'Episode:{episode}  | Score:{score}')
         env.close()
 
 
@@ -91,6 +91,7 @@ class Main():
         @param env: The environment to run this project with
         @param numEpisodes: the count of episodes to run the environment for
         """
+        scores = []
         for episode in range(numEpisodes):
             obs = env.reset()
             done = False
@@ -100,9 +101,12 @@ class Main():
                 action, _discard = model.predict(obs)
                 obs, reward, isTerminal, info = env.step(action)
                 score += reward
-
                 done = isTerminal
-            print(f'Episode:{episode} | Score:{score}')
+            scores.append(score)
+
+            runningAvg = np.mean(scores)
+
+            print(f'Episode:{episode} \t| Score:{score} \t\t| RunningAvg: {round(runningAvg, 2)}')
         env.close()
 
 
@@ -146,14 +150,14 @@ class Main():
         model.save(modelPath)    
     
     
-    def load_model(self, model, modelPath):
+    def load_model(self, env: MacodiacEnvironment, model, modelPath: str):
         """
         Saves a model to a given path
 
         @param model:       The model to save
         @param modelPath:   The modelPath to save to
         """
-        model.save(modelPath)
+        model = PPO.load(modelPath, env=env)
         return model
 
 main = Main()

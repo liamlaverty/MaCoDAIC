@@ -14,21 +14,23 @@ class MacodiacEnvironment(Env):
     state = 0
     environment_timesteps = 1000
 
-    def __init__(self):
+    def __init__(self, envTimesteps:int):
         """
         Initialises the class
         """
+        self.environment_timesteps = envTimesteps
         self.action_space = spaces.Discrete(3)    
         self.observation_space = spaces.Box(low=np.array([0]), high=np.array([100]))
         self.reset()
 
-        
+
         
         print('-- ENV SETTINGS --')
         print(self.observation_space)
         print(self.observation_space.sample())
         print(self.action_space)
         print(self.action_space.sample())
+        print(self.environment_timesteps)
         print('-- ENV SETTINGS --')
 
 
@@ -36,7 +38,6 @@ class MacodiacEnvironment(Env):
         """
         Processes an action for an agent
         """
-
         self.state += action - 1
         self.environment_timesteps -=1
 
