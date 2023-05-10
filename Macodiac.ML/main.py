@@ -20,7 +20,7 @@ class Main():
         self.log_path =  os.path.join('Macodiac.ML', 'training','results','Logs')
         self.save_path =  os.path.join('Macodiac.ML', 'training','results','saved_models', 'model')
         self.env = MacodiacEnvironment(envTimesteps=100)
-        self.numTrainingIterations = 100_000
+        self.numTrainingIterations = 1_000_000
         self.numEpisodes = 10
 
 
@@ -51,8 +51,7 @@ class Main():
         if self.__MODE_TRAINMODEL__: 
             model = self.train_model(model,
                                      self.numTrainingIterations)
-
-        self.save_model(model, self.save_path)
+            self.save_model(model, self.save_path)
 
         if self.__MODE_RANDOMSAMPLE__:
             self.run_project_with_rand_test(self.env, self.numEpisodes)
