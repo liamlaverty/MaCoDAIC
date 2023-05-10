@@ -17,10 +17,12 @@ class Main():
         """
         init the class
         """
-        self.log_path =  os.path.join('Macodiac.ML', 'training','results','Logs')
-        self.save_path =  os.path.join('Macodiac.ML', 'training','results','saved_models', 'model')
+        filePath = os.path.join('Macodiac.ML', 'training','results')
+        self.log_path =  os.path.join(filePath,'Logs')
+        self.save_path =  os.path.join(filePath,'saved_models', 'model')
+        self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.env = MacodiacEnvironment(envTimesteps=100)
-        self.numTrainingIterations = 1_000_000
+        self.numTrainingIterations = 10_000_000
         self.numEpisodes = 10
 
 
@@ -50,7 +52,7 @@ class Main():
 
         if self.__MODE_TRAINMODEL__: 
             model = self.train_model(model,
-                                     self.numTrainingIterations)
+                                     self.numTrainingIterations, self.save_path_intermittent)
             self.save_model(model, self.save_path)
 
         if self.__MODE_RANDOMSAMPLE__:
@@ -114,15 +116,26 @@ class Main():
         return model
 
 
-    def train_model(self, model, numTimesteps: int):
+    def train_model(self, model, numTimesteps: int, savePath:str):
         """
         Trains a model with the number of iterations in 
-        numtimesteps
+        numtimesteps. Creates a n intermediate save every 1m iterations
 
         @param model: The model to train. The model must have been instantiated
         @param numTimesteps: the number of training iterations
         """
-        model.learn(total_timesteps=numTimesteps)
+        
+        saveEveryNSteps = 1_000_000
+        
+        if numTimesteps < saveEveryNSteps:
+            model.learn(total_timesteps=numTimesteps)
+
+        else:
+            rangeUpper = int(numTimesteps / saveEveryNSteps)
+            for i in range(1,rangeUpper+1):
+                model.learn(total_timesteps=saveEveryNSteps)
+                model.save(os.path.join(savePath, f'interim-{i}'))
+
         return model
 
     def policy_evaluation(self, model, env: MacodiacEnvironment, numEpisodes:int=50):
