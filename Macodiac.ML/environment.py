@@ -18,12 +18,11 @@ class MacodiacEnvironment(Env):
         """
         Initialises the class
         """
-        self.action_space = spaces.Discrete(3)
-
-        # observation space is a range percentages
-        # 
+        self.action_space = spaces.Discrete(3)    
         self.observation_space = spaces.Box(low=np.array([0]), high=np.array([100]))
         self.reset()
+
+        
         
         print('-- ENV SETTINGS --')
         print(self.observation_space)
@@ -53,7 +52,7 @@ class MacodiacEnvironment(Env):
             done = True
         else:
             done = False
-            
+
         info = {}
         return self.state, reward, done, info
 
