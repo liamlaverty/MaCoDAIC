@@ -11,20 +11,21 @@ import numpy as np
 from stable_baselines3 import PPO
 
 
-class Main():
+class MultiagentMain():
     isRunning = False
 
     def __init__(self):
         """
         init the class
         """
-        filePath = os.path.join('Macodiac.ML', 'training','results')
+        filePath = os.path.join('Macodiac.ML', 'training_multiagent','results')
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.env = MacodiacEnvironment(envTimesteps=100)
-        self.numTrainingIterations = 10_000
+        self.env = MultiAgentMacodiacEnvironment(envTimesteps=100)
+        self.numTrainingIterations = 100
         self.numEpisodes = 10
+        self.numAgents = 2
 
 
         # set to true if you want to load an existing model
@@ -32,14 +33,14 @@ class Main():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = True
+        self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = True
+        self.__MODE_TRAINMODEL__ = False
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = False
+        self.__MODE_RANDOMSAMPLE__ = True
 
 
     def Run(self):
@@ -63,7 +64,18 @@ class Main():
             self.policy_evaluation(model, self.env, self.numEpisodes)
 
 
-    def run_project_with_rand_test(self, env:MacodiacEnvironment, numEpisodes:int):
+    def run_multiagent_project_with_rand_test(self, env:MultiAgentMacodiacEnvironment, numEpisodes: int):
+        """
+        Runs the project with random sampling, using the multiagent env
+        """
+
+        for episode in range(numEpisodes):
+            obs = env.reset()
+            action = env.action_space.sample()
+            obs, rewards, isTerminal, infos = env.step(action)
+
+
+    def run_project_with_rand_test(self, env:MultiAgentMacodiacEnvironment, numEpisodes:int):
         """
         Runs the project with random sampling, instead
         of a model
@@ -85,7 +97,7 @@ class Main():
         env.close()
 
 
-    def run_project(self, env:MacodiacEnvironment, numEpisodes: int, model):
+    def run_project(self, env:MultiAgentMacodiacEnvironment, numEpisodes: int, model):
         """
         Runs the project with an actual model, instead of random sampling
         of a model
@@ -112,7 +124,7 @@ class Main():
         env.close()
 
 
-    def create_model(self, env: MacodiacEnvironment, log_path: str):
+    def create_model(self, env: MultiAgentMacodiacEnvironment, log_path: str):
         model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=log_path)
         return model
 
@@ -139,7 +151,7 @@ class Main():
 
         return model
 
-    def policy_evaluation(self, model, env: MacodiacEnvironment, numEpisodes:int=50):
+    def policy_evaluation(self, model, env: MultiAgentMacodiacEnvironment, numEpisodes:int=50):
         """
         Prints a policy evaluation, including the mean episode reward
         and the standard deviation
@@ -163,7 +175,7 @@ class Main():
         model.save(modelPath)    
     
     
-    def load_model(self, env: MacodiacEnvironment, model, modelPath: str):
+    def load_model(self, env: MultiAgentMacodiacEnvironment, model, modelPath: str):
         """
         Saves a model to a given path
 
@@ -173,5 +185,5 @@ class Main():
         model = PPO.load(modelPath, env=env)
         return model
 
-main = Main()
+main = MultiagentMain()
 main.Run()

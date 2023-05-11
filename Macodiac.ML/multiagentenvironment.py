@@ -7,14 +7,15 @@ import numpy as np
 import random
 
 
-class MacodiacEnvironment(Env):
+class MultiAgentMacodiacEnvironment(Env):
     """
-    Builds a profit maximising agent
+    Builds a profit maximising agent environment, supporting
+    up to n_agent agents
     """
     state = 0
     environment_timesteps = 1000
 
-    def __init__(self, envTimesteps:int):
+    def __init__(self, envTimesteps:int, n_agents: int):
         """
         Initialises the class
         """
@@ -40,8 +41,6 @@ class MacodiacEnvironment(Env):
         """
         self.state += action - 1
         self.environment_timesteps -=1
-
-        
 
 
         if self.state > 0:
