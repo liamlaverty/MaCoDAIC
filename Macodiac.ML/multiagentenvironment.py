@@ -6,6 +6,9 @@ from gym import spaces
 import numpy as np
 import random
 
+class AgentObject:
+    def __init__(self):
+        self.state = []
 
 class MultiAgentMacodiacEnvironment(Env):
     """
@@ -20,10 +23,17 @@ class MultiAgentMacodiacEnvironment(Env):
         Initialises the class
         """
         self.environment_timesteps = envTimesteps
-        self.action_space = spaces.Discrete(3)    
-        self.observation_space = spaces.Box(low=np.array([0]), high=np.array([100]))
-        
-        self.policy_agents = [numAgents]
+        self.policy_agents = []
+        for i in range(numAgents):
+            self.policy_agents.append(AgentObject())
+
+        self.action_space = []
+        self.observation_space = []
+        self.agents = [numAgents]
+
+        for agent in self.policy_agents:
+            self.action_space.append(spaces.Discrete(3))
+            self.observation_space.append(spaces.Box(low=np.array([0]), high=np.array([100])))
         
         self.reset()
 
@@ -31,9 +41,9 @@ class MultiAgentMacodiacEnvironment(Env):
         
         print('-- ENV SETTINGS --')
         print(self.observation_space)
-        print(self.observation_space.sample())
+        #print(self.observation_space.sample())
         print(self.action_space)
-        print(self.action_space.sample())
+        #print(self.action_space.sample())
         print(self.environment_timesteps)
         print('-- ENV SETTINGS --')
 
@@ -46,7 +56,7 @@ class MultiAgentMacodiacEnvironment(Env):
         Then calls world.step to progress the entire world's actions
 
         Builds up arrays of results, and returns them in a tuple of arrays
-        
+
         """
         self.environment_timesteps -=1
 
@@ -61,6 +71,8 @@ class MultiAgentMacodiacEnvironment(Env):
             self.set_action(action_arr[i], agent, self.action_space[i])
 
         self.world.step()
+
+
 
         for agent in self.policy_agents:
             obs_arr.append(self._get_obs(agent))
@@ -87,7 +99,9 @@ class MultiAgentMacodiacEnvironment(Env):
 
         Sets state to a random float between negative 100 to  positive 100
         """
-        self.state = np.array([0 + random.randint(-100,100)]).astype(float)
+        for i in range(len(self.policy_agents)):
+            self.policy_agents[i].state = np.array([0 + random.randint(-100,100)]).astype(float)
+
         self.environment_timesteps = 1000
-        return self.state
+        return self.environment_timesteps
         

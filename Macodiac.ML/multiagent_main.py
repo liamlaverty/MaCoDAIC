@@ -24,7 +24,7 @@ class MultiagentMain():
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.numTrainingIterations = 100
         self.numEpisodes = 10
-        self.numAgents = 2
+        self.numAgents = 5
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=100, numAgents=self.numAgents)
 
@@ -49,6 +49,10 @@ class MultiagentMain():
         """
         Runs the project
         """
+
+        self.run_multiagent_project_with_rand_test(self.env, 5)
+        return
+
         model = self.create_model(self.env, self.log_path)
 
         if self.__MODE_LOADMODEL__:
@@ -75,13 +79,22 @@ class MultiagentMain():
             obs = env.reset()
             done = False
             score = 0
+            agent_scores = [len(env.policy_agents)]
             while not done:
                 #env.render()
-                action = env.action_space.sample()
-                obs_arr, reward_arr, done_arr, isTerminal, info_arr = env.step(action)
-                score += reward
+                action_arr = [len(env.policy_agents)]
+                for i in range(len(env.policy_agents)):
+                    action_arr.append(env.action_space[i].sample())
+                obs_arr, reward_arr, done_arr, isTerminal, info_arr = env.step(action_arr)
+                
+                for reward, i in reward_arr:
+                    agent_scores[i] += reward
+
+                if any(done_arr):
+                    isTerminal = True
+
                 done = isTerminal
-            print(f'Episode:{episode}  | Score:{score}')
+            print(f'Episode:{episode}  | Score:{agent_scores}')
         env.close()
 
 
@@ -194,6 +207,7 @@ class MultiagentMain():
         """
         model = PPO.load(modelPath, env=env)
         return model
+
 
 main = MultiagentMain()
 main.Run()
