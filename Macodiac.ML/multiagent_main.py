@@ -22,10 +22,12 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.env = MultiAgentMacodiacEnvironment(envTimesteps=100)
         self.numTrainingIterations = 100
         self.numEpisodes = 10
         self.numAgents = 2
+
+        self.env = MultiAgentMacodiacEnvironment(envTimesteps=100, numAgents=self.numAgents)
+
 
 
         # set to true if you want to load an existing model
@@ -71,8 +73,16 @@ class MultiagentMain():
 
         for episode in range(numEpisodes):
             obs = env.reset()
-            action = env.action_space.sample()
-            obs, rewards, isTerminal, infos = env.step(action)
+            done = False
+            score = 0
+            while not done:
+                #env.render()
+                action = env.action_space.sample()
+                obs_arr, reward_arr, done_arr, isTerminal, info_arr = env.step(action)
+                score += reward
+                done = isTerminal
+            print(f'Episode:{episode}  | Score:{score}')
+        env.close()
 
 
     def run_project_with_rand_test(self, env:MultiAgentMacodiacEnvironment, numEpisodes:int):

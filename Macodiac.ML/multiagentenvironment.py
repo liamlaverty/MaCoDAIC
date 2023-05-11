@@ -15,13 +15,16 @@ class MultiAgentMacodiacEnvironment(Env):
     state = 0
     environment_timesteps = 1000
 
-    def __init__(self, envTimesteps:int, n_agents: int):
+    def __init__(self, envTimesteps:int, numAgents: int):
         """
         Initialises the class
         """
         self.environment_timesteps = envTimesteps
         self.action_space = spaces.Discrete(3)    
         self.observation_space = spaces.Box(low=np.array([0]), high=np.array([100]))
+        
+        self.policy_agents = [numAgents]
+        
         self.reset()
 
 
@@ -35,28 +38,42 @@ class MultiAgentMacodiacEnvironment(Env):
         print('-- ENV SETTINGS --')
 
 
-    def step(self, action):
+    def step(self, action_arr):
         """
-        Processes an action for an agent
+        Processes an action for an agent.
+
+        Loops through each agent and sets its action. 
+        Then calls world.step to progress the entire world's actions
+
+        Builds up arrays of results, and returns them in a tuple of arrays
+        
         """
-        self.state += action - 1
         self.environment_timesteps -=1
 
+        obs_arr = []
+        reward_arr = []
+        done_arr = []
+        info_arr = [{'n': []}]
+        
+        agent_arr = self.policy_agents
 
-        if self.state > 0:
-            reward = 1
-        elif self.state == 0:
-            reward = 0
-        else:
-            reward = -1
+        for i, agent in enumerate(agent_arr):
+            self.set_action(action_arr[i], agent, self.action_space[i])
+
+        self.world.step()
+
+        for agent in self.policy_agents:
+            obs_arr.append(self._get_obs(agent))
+            reward_arr.append(self._get_reward(agent))
+            done_arr.append(self._get_done(agent))
+            info_arr.append(self._get_info(agent))
 
         if self.environment_timesteps <= 0:
-            done = True
+            isTerminal = True
         else:
-            done = False
+            isTerminal = False
 
-        info = {}
-        return self.state, reward, done, info
+        return obs_arr, reward_arr, done_arr, isTerminal, info_arr
 
     def render(self) -> None:
         """
