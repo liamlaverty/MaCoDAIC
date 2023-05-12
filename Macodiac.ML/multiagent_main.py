@@ -4,6 +4,8 @@ from gymnasium import Env
 from environment import MacodiacEnvironment
 from multiagentenvironment import MultiAgentMacodiacEnvironment
 from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.env_checker import check_env
+
 import numpy as np
 
 
@@ -22,11 +24,12 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 100
-        self.numEpisodes = 100
+        self.numTrainingIterations = 5
+        self.numEpisodes = 5
         self.numAgents = 2
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
+        check_env(self.env)
 
 
 

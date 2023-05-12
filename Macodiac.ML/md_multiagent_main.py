@@ -2,7 +2,7 @@ import os
 import gymnasium as gym
 from gymnasium import Env
 from environment import MacodiacEnvironment
-from multiagentenvironment import MultiAgentMacodiacEnvironment
+from md_multiagentenvironment import MdMultiAgentMacodiacEnvironment
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.env_checker import check_env
 import numpy as np
@@ -28,7 +28,7 @@ class MultiagentMain():
         self.numEpisodes = 10
         self.numAgents = 3
 
-        self.env = MultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
+        self.env = MdMultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
         check_env(self.env)
 
 
@@ -71,7 +71,7 @@ class MultiagentMain():
             self.policy_evaluation(model, self.env, self.numEpisodes)
 
 
-    def run_multiagent_project_with_rand_test(self, env:MultiAgentMacodiacEnvironment, numEpisodes: int):
+    def run_multiagent_project_with_rand_test(self, env:MdMultiAgentMacodiacEnvironment, numEpisodes: int):
         """
         Runs the project with random sampling, using the multiagent env
         """
@@ -113,7 +113,7 @@ class MultiagentMain():
 
 
 
-    def run_project(self, env:MultiAgentMacodiacEnvironment, numEpisodes: int, model):
+    def run_project(self, env:MdMultiAgentMacodiacEnvironment, numEpisodes: int, model):
         """
         Runs the project with an actual model, instead of random sampling
         of a model
@@ -140,7 +140,7 @@ class MultiagentMain():
         env.close()
 
 
-    def create_model(self, env: MultiAgentMacodiacEnvironment, log_path: str):
+    def create_model(self, env: MdMultiAgentMacodiacEnvironment, log_path: str):
         env.reset()
         model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=log_path)
         return model
@@ -168,7 +168,7 @@ class MultiagentMain():
 
         return model
 
-    def policy_evaluation(self, model, env: MultiAgentMacodiacEnvironment, numEpisodes:int=50):
+    def policy_evaluation(self, model, env: MdMultiAgentMacodiacEnvironment, numEpisodes:int=50):
         """
         Prints a policy evaluation, including the mean episode reward
         and the standard deviation
@@ -192,7 +192,7 @@ class MultiagentMain():
         model.save(modelPath)    
     
     
-    def load_model(self, env: MultiAgentMacodiacEnvironment, model, modelPath: str):
+    def load_model(self, env: MdMultiAgentMacodiacEnvironment, model, modelPath: str):
         """
         Saves a model to a given path
 

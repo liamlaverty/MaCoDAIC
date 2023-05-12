@@ -1,5 +1,5 @@
 import gymnasium as gym
-from gymnasium import Env
+from gym import Env
 # use `gym.spaces` here, even though we're using `gymnasium`
 # https://stackoverflow.com/questions/75108957/assertionerror-the-algorithm-only-supports-class-gym-spaces-box-box-as-acti
 from gym import spaces
@@ -16,36 +16,42 @@ class MultiAgentMacodiacEnvironment(Env):
     up to n_agent agents
     """
     state = 0
-    environment_timesteps = 15
+    environment_timesteps = 0
+    environment_starter_timesteps = 15
 
     def __init__(self, envTimesteps:int, numAgents: int):
         """
         Initialises the class
         """
-        self.environment_timesteps = envTimesteps
+        self.environment_starter_timesteps = envTimesteps
+
         self.policy_agents = []
         for i in range(numAgents):
             self.policy_agents.append(AgentObject())
-
-        self_action_space = []
-        self_observation_space = []
+        self.observation_space = []
         self.agents = [numAgents]
 
-        for agent in self.policy_agents:
-            self_action_space.append(spaces.Discrete(3))
-            self_observation_space.append(spaces.Box(low=np.array([0]), high=np.array([100])))
+        self.action_space = spaces.MultiDiscrete([3, 3])
+        self.observation_space = spaces.MultiDiscrete([3, 3])
+
+        # for agent in self.policy_agents:
+            #self_action_space.append(spaces.Discrete(3))
+            #self_observation_space.append(spaces.Box(low=np.array([0]), high=np.array([100])))
+            # self.observation_space.append(spaces.Box(low=-np.inf, high=+np.inf, shape=(5,), dtype=np.float32))
         
-        self.action_space = np.array(self_action_space)
-        self.observation_space = np.array(self_observation_space)
+        #self.action_space = np.array(self_action_space)
+        # self.observation_space = spaces.Box(low=np.array([0, 0, 0]), high=np.array([100, 100, 100]), 
+        #                                     shape=(3,3,3),
+        #                                     dtype=np.float64)
         self.reset()
 
 
         
         print('-- ENV SETTINGS --')
         print(self.observation_space)
-        #print(self.observation_space.sample())
+        print(self.observation_space[0].sample())
         print(self.action_space)
-        #print(self.action_space.sample())
+        print(self.action_space.sample())
         print(self.environment_timesteps)
         print('-- ENV SETTINGS --')
 
@@ -80,7 +86,7 @@ class MultiAgentMacodiacEnvironment(Env):
         obs_arr = []
         reward_arr = []
         done_arr = []
-        info_arr = [{'n': []}]
+        info_arr = {'n': []}
         
         agent_arr = self.policy_agents
 
@@ -94,7 +100,7 @@ class MultiAgentMacodiacEnvironment(Env):
             obs_arr.append(self._get_obs(agent))
             reward_arr.append(self._get_reward(agent))
             done_arr.append(self._get_done(agent))
-            info_arr.append(self._get_info(agent))
+            info_arr['n'].append(self._get_info(agent))
 
         if self.environment_timesteps <= 0:
             isTerminal = True
@@ -103,7 +109,7 @@ class MultiAgentMacodiacEnvironment(Env):
         else:
             isTerminal = False
 
-        return obs_arr, reward_arr, done_arr, isTerminal, info_arr
+        return  np.array(obs_arr), sum(reward_arr), isTerminal,  info_arr
 
 
     def _get_obs(self, agent):
@@ -143,12 +149,14 @@ class MultiAgentMacodiacEnvironment(Env):
 
         Sets state to a random float between negative 100 to  positive 100
         """
+        obs_arr =[]
         for i in range(len(self.policy_agents)):
             self.policy_agents[i].state = np.array([0 + random.randint(-100,100)]).astype(float)
+            obs_arr.append(self.policy_agents[i].state)
             self.policy_agents[i].reward = 0
             self.policy_agents[i].info = {}
             self.policy_agents[i].done = False
 
-        self.environment_timesteps = 1000
-        return self.environment_timesteps
+        self.environment_timesteps = self.environment_starter_timesteps
+        return np.zeros(len(self.policy_agents)).astype(np.int64)
         

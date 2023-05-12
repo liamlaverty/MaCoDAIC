@@ -1,7 +1,11 @@
 training/results/logs/*
+training_multiagent/results/logs/*
+!training_multiagent/results/logs/.keep
 !training/results/logs/.keep
 training/results/saved_models/*
 !training/results/saved_models/.keep
+training_multiagent/results/saved_models/*
+!training_multiagent/results/saved_models/.keep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

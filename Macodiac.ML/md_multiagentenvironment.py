@@ -10,7 +10,7 @@ class AgentObject:
     def __init__(self):
         self.state = []
 
-class MultiAgentMacodiacEnvironment(Env):
+class MdMultiAgentMacodiacEnvironment(Env):
     """
     Builds a profit maximising agent environment, supporting
     up to n_agent agents
