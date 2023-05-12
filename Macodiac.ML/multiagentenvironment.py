@@ -16,7 +16,7 @@ class MultiAgentMacodiacEnvironment(Env):
     up to n_agent agents
     """
     state = 0
-    environment_timesteps = 1000
+    environment_timesteps = 15
 
     def __init__(self, envTimesteps:int, numAgents: int):
         """
@@ -48,6 +48,21 @@ class MultiAgentMacodiacEnvironment(Env):
         print('-- ENV SETTINGS --')
 
 
+    def set_agent_action(self, action, agent, actionSpace):
+        agent.state = action
+
+    def step_agent(self, agent):
+        if agent.state > 0:
+            reward = 1
+        elif agent.state == 0:
+            reward = 0
+        else:
+            reward = -1
+
+        info = {}
+        return agent.state, reward, False, info
+
+
     def step(self, action_arr):
         """
         Processes an action for an agent.
@@ -68,11 +83,10 @@ class MultiAgentMacodiacEnvironment(Env):
         agent_arr = self.policy_agents
 
         for i, agent in enumerate(agent_arr):
-            self.set_action(action_arr[i], agent, self.action_space[i])
+            self.set_agent_action(action_arr[i], agent, self.action_space[i])
 
-        self.world.step()
-
-
+        for i, agent in enumerate(agent_arr):
+            agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
 
         for agent in self.policy_agents:
             obs_arr.append(self._get_obs(agent))
@@ -82,10 +96,38 @@ class MultiAgentMacodiacEnvironment(Env):
 
         if self.environment_timesteps <= 0:
             isTerminal = True
+        elif any(done_arr):
+             isTerminal = True
         else:
             isTerminal = False
 
         return obs_arr, reward_arr, done_arr, isTerminal, info_arr
+
+
+    def _get_obs(self, agent):
+        """
+            accepts an Agent, and returns its observation/state
+        """
+        return agent.state
+
+    def _get_reward(self, agent):
+        """
+            accepts an Agent, and returns its reward
+        """
+        return agent.reward
+
+    def _get_done(self, agent):
+        """
+            accepts an Agent, and returns its done/terminal property
+        """
+        return agent.done
+
+    def _get_info(self, agent):
+        """
+            accepts an Agent, and returns its info object
+        """
+        return agent.info
+
 
     def render(self) -> None:
         """
@@ -101,6 +143,9 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         for i in range(len(self.policy_agents)):
             self.policy_agents[i].state = np.array([0 + random.randint(-100,100)]).astype(float)
+            self.policy_agents[i].reward = 0
+            self.policy_agents[i].info = {}
+            self.policy_agents[i].done = False
 
         self.environment_timesteps = 1000
         return self.environment_timesteps

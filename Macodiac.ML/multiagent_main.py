@@ -24,9 +24,9 @@ class MultiagentMain():
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.numTrainingIterations = 100
         self.numEpisodes = 10
-        self.numAgents = 5
+        self.numAgents = 25
 
-        self.env = MultiAgentMacodiacEnvironment(envTimesteps=100, numAgents=self.numAgents)
+        self.env = MultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
 
 
 
@@ -79,22 +79,33 @@ class MultiagentMain():
             obs = env.reset()
             done = False
             score = 0
-            agent_scores = [len(env.policy_agents)]
+            agent_scores = []
+            iterator = 0
             while not done:
                 #env.render()
-                action_arr = [len(env.policy_agents)]
+                iterator+=1
+                print(f'iterator:{iterator}')
+                action_arr = []
                 for i in range(len(env.policy_agents)):
-                    action_arr.append(env.action_space[i].sample())
+                    actionForAgent = env.action_space[i].sample()
+                    action_arr.append(actionForAgent)
+                
+                print(f'action for agents:\t{action_arr}')
+                
                 obs_arr, reward_arr, done_arr, isTerminal, info_arr = env.step(action_arr)
                 
-                for reward, i in reward_arr:
-                    agent_scores[i] += reward
+                # for i, reward in enumerate(reward_arr):
+                #     print(f'reward is {reward}')
+
+                agent_scores.append(sum(reward_arr))
+
+                print(f'rewards for agents:\t{reward_arr}')
 
                 if any(done_arr):
                     isTerminal = True
 
                 done = isTerminal
-            print(f'Episode:{episode}  | Score:{agent_scores}')
+            print(f'Episode:{episode} | Aggregate agent scores:(Sum:{sum(agent_scores)})')
         env.close()
 
 
