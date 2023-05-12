@@ -27,14 +27,16 @@ class MultiAgentMacodiacEnvironment(Env):
         for i in range(numAgents):
             self.policy_agents.append(AgentObject())
 
-        self.action_space = []
-        self.observation_space = []
+        self_action_space = []
+        self_observation_space = []
         self.agents = [numAgents]
 
         for agent in self.policy_agents:
-            self.action_space.append(spaces.Discrete(3))
-            self.observation_space.append(spaces.Box(low=np.array([0]), high=np.array([100])))
+            self_action_space.append(spaces.Discrete(3))
+            self_observation_space.append(spaces.Box(low=np.array([0]), high=np.array([100])))
         
+        self.action_space = np.array(self_action_space)
+        self.observation_space = np.array(self_observation_space)
         self.reset()
 
 

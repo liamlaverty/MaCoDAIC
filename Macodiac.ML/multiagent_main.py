@@ -23,8 +23,8 @@ class MultiagentMain():
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.numTrainingIterations = 100
-        self.numEpisodes = 10
-        self.numAgents = 25
+        self.numEpisodes = 100
+        self.numAgents = 2
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
 
@@ -38,11 +38,11 @@ class MultiagentMain():
         self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = False
+        self.__MODE_TRAINMODEL__ = True
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = True
+        self.__MODE_RANDOMSAMPLE__ = False
 
 
     def Run(self):
@@ -50,8 +50,6 @@ class MultiagentMain():
         Runs the project
         """
 
-        self.run_multiagent_project_with_rand_test(self.env, 5)
-        return
 
         model = self.create_model(self.env, self.log_path)
 
@@ -64,7 +62,7 @@ class MultiagentMain():
             self.save_model(model, self.save_path)
 
         if self.__MODE_RANDOMSAMPLE__:
-            self.run_project_with_rand_test(self.env, self.numEpisodes)
+            self.run_multiagent_project_with_rand_test(self.env, 5)
         else:
             self.run_project(self.env, self.numEpisodes, model)
             self.policy_evaluation(model, self.env, self.numEpisodes)
