@@ -114,19 +114,16 @@ class MultiAgentMacodiacEnvironment(Env):
         else:
             isTerminal = False
 
-        # fakeObsArray = np.array([     [0, 0, 0],
-        #                               [0, 0, 0],
-        #                               [0, 0, 0]]).astype(np.float32) 
-        tmpFakeObsArray = []
+        tmpObsArray = []
         for i, agent in enumerate(self.policy_agents):
             partialResult = self.get_agent_default_observation_array()
-            partialResult[0] = self._get_obs(agent)
-            tmpFakeObsArray.append(partialResult)
+            partialResult[0] = self._get_obs(agent) #The agent's result is present in the 0th element of its result
+            tmpObsArray.append(partialResult)
 
-        fakeObsArray = np.array(tmpFakeObsArray).astype(np.float32) 
+        concatObsArray = np.array(tmpObsArray).astype(np.float32) 
 
 
-        return fakeObsArray, sum(reward_arr), isTerminal,  info_arr
+        return concatObsArray, sum(reward_arr), isTerminal,  info_arr
 
 
     def _get_obs(self, agent):
@@ -179,12 +176,8 @@ class MultiAgentMacodiacEnvironment(Env):
 
         self.environment_timesteps = self.environment_starter_timesteps
         
-        #print(f'obsArr: {obs_arr}')
         return np.array(obs_arr).astype(np.float32)
-        
-        return np.array([   [0, 0, 0],
-                            [0, 0, 0],
-                            [0, 0, 0]]).astype(np.float32) 
+
 
     def get_agent_default_observation_array(self):
         return [0.0, 60.0, 5.0]
