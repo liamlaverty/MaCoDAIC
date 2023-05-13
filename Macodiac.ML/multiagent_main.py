@@ -26,7 +26,7 @@ class MultiagentMain():
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.numTrainingIterations = 5
         self.numEpisodes = 5
-        self.numAgents = 2
+        self.numAgents = 3
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
         check_env(self.env)
@@ -41,11 +41,11 @@ class MultiagentMain():
         self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = True
+        self.__MODE_TRAINMODEL__ = False
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = False
+        self.__MODE_RANDOMSAMPLE__ = True
 
 
     def Run(self):
@@ -87,25 +87,22 @@ class MultiagentMain():
                 iterator+=1
                 print(f'iterator:{iterator}')
                 action_arr = []
-                for i in range(len(env.policy_agents)):
-                    actionForAgent = env.action_space[i].sample()
-                    action_arr.append(actionForAgent)
+                # for i in range(len(env.policy_agents)):
+                #     actionForAgent = env.action_space.sample()
+                #     action_arr.append(actionForAgent)
                 
                 print(f'action for agents:\t{action_arr}')
                 
-                obs_arr, reward_arr, done_arr, isTerminal, info_arr = env.step(action_arr)
+                obs_arr, reward, isDone, info_arr = env.step(env.action_space.sample())
                 
                 # for i, reward in enumerate(reward_arr):
                 #     print(f'reward is {reward}')
 
-                agent_scores.append(sum(reward_arr))
+                agent_scores.append(reward)
 
-                print(f'rewards for agents:\t{reward_arr}')
+                print(f'rewards for agents:\t{reward}')
 
-                if any(done_arr):
-                    isTerminal = True
-
-                done = isTerminal
+                done = isDone
             print(f'Episode:{episode} | Aggregate agent scores:(Sum:{sum(agent_scores)})')
         env.close()
 
