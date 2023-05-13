@@ -64,7 +64,7 @@ class MultiAgentMacodiacEnvironment(Env):
         agentBaseVendingPrice = self.env_wholesale_price * (agent.state / 100)
         agentMarginalCostAddedVendingPrice = agentBaseVendingPrice + self.env_agent_marginal_cost
         agent.vendingPrice = agentMarginalCostAddedVendingPrice
-        print(f'agent vending price was {agent.vendingPrice}')
+        # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
         if agent.state > 0:
@@ -114,11 +114,19 @@ class MultiAgentMacodiacEnvironment(Env):
         else:
             isTerminal = False
 
-        fakeObsArray = np.array([   [0, 0, 0],
-                            [0, 0, 0],
-                            [0, 0, 0]]).astype(np.float32) 
+        # fakeObsArray = np.array([     [0, 0, 0],
+        #                               [0, 0, 0],
+        #                               [0, 0, 0]]).astype(np.float32) 
+        tmpFakeObsArray = []
+        for i, agent in enumerate(self.policy_agents):
+            partialResult = self.get_agent_default_observation_array()
+            partialResult[0] = self._get_obs(agent)
+            tmpFakeObsArray.append(partialResult)
 
-        return  fakeObsArray, sum(reward_arr), isTerminal,  info_arr
+        fakeObsArray = np.array(tmpFakeObsArray).astype(np.float32) 
+
+
+        return fakeObsArray, sum(reward_arr), isTerminal,  info_arr
 
 
     def _get_obs(self, agent):
@@ -161,7 +169,7 @@ class MultiAgentMacodiacEnvironment(Env):
         obs_arr =[]
         for i in range(len(self.policy_agents)):
             self.policy_agents[i].state = np.array(
-                                    [0.0, 60.0, 5.0], 
+                                    self.get_agent_default_observation_array(), 
                                      dtype=np.float32)
             obs_arr.append(self.policy_agents[i].state)
             self.policy_agents[i].reward = 0
@@ -171,11 +179,12 @@ class MultiAgentMacodiacEnvironment(Env):
 
         self.environment_timesteps = self.environment_starter_timesteps
         
-        print(f'obsArr: {obs_arr}')
+        #print(f'obsArr: {obs_arr}')
         return np.array(obs_arr).astype(np.float32)
         
         return np.array([   [0, 0, 0],
                             [0, 0, 0],
                             [0, 0, 0]]).astype(np.float32) 
 
-        
+    def get_agent_default_observation_array(self):
+        return [0.0, 60.0, 5.0]

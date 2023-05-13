@@ -24,7 +24,7 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 5
+        self.numTrainingIterations = 1_000_000
         self.numEpisodes = 5
         self.numAgents = 3
 
@@ -41,11 +41,11 @@ class MultiagentMain():
         self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = True
+        self.__MODE_TRAINMODEL__ = False
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = False
+        self.__MODE_RANDOMSAMPLE__ = True
 
 
     def Run(self):

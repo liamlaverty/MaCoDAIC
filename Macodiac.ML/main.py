@@ -35,11 +35,11 @@ class Main():
         self.__MODE_LOADMODEL__ =False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = False
+        self.__MODE_TRAINMODEL__ = True
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = True
+        self.__MODE_RANDOMSAMPLE__ = False
 
 
     def Run(self):
