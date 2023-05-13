@@ -11,6 +11,13 @@ class AgentObject:
         self.state = []
         self.vendingPrice = 0
 
+class ConsumerObject:
+    def __init__(self):
+        self.demand = 1
+        self.utility = 0
+        self.money = 100
+        self.daily_income = 20
+
 class MultiAgentMacodiacEnvironment(Env):
     """
     Builds a profit maximising agent environment, supporting
@@ -20,27 +27,34 @@ class MultiAgentMacodiacEnvironment(Env):
     environment_timesteps = 0
     environment_starter_timesteps = 150
     env_wholesale_price = 60        # the price agents pay to purchase goods
-    env_agent_marginal_cost = 5     # the marginal operating cost
+    env_agent_marginal_cost = 5     # the marginal cost of vending
+    num_consumers = 5
+    consumers_arr = []
 
     def __init__(self, envTimesteps:int, numAgents: int):
         """
         Initialises the class
         """
         self.environment_starter_timesteps = envTimesteps
-
+        
         self.policy_agents = []
         for i in range(numAgents):
             self.policy_agents.append(AgentObject())
+        
+        for i in range(self.num_consumers):
+            self.consumers_arr.append(ConsumerObject())
+
         self.observation_space = []
         self.agents = [numAgents]
-        numActions = 3
+
+        arr = np.full(numAgents, 200) # creates an array full of 200's shaped [200,200,200], with numAgents number of element
 
 
-        self.action_space = spaces.MultiDiscrete([200, 200, 200])
+        self.action_space = spaces.MultiDiscrete(arr)
 
-        # the observation space is a nAgents by nActions array of float32 numbers
-        # between 0-100
-        self.observation_space = spaces.Box(low=-100,high=100, shape=(3, 3), dtype=np.float32)
+        # the observation space is a nAgents by nActions array of float32 numbers between 0-100
+        # also contains the static value for marginal cost and wholesale price
+        self.observation_space = spaces.Box(low=-100,high=100, shape=(numAgents, 4), dtype=np.float32)
 
         print(f'obs_space.sample: {self.observation_space.sample()}')
 
@@ -101,6 +115,9 @@ class MultiAgentMacodiacEnvironment(Env):
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
 
+        # for i, consumer in enumerate(self.consumers_arr):
+        #     self.step_consumer(self.policy_agents)
+
         for agent in self.policy_agents:
             obs_arr.append(self._get_obs(agent))
             reward_arr.append(self._get_reward(agent))
@@ -116,16 +133,21 @@ class MultiAgentMacodiacEnvironment(Env):
 
         tmpObsArray = []
         for i, agent in enumerate(self.policy_agents):
-            partialResult = self.get_agent_default_observation_array()
-            partialResult[0] = self._get_obs(agent) #The agent's result is present in the 0th element of its result
-            tmpObsArray.append(partialResult)
+            partialObservationResult = self.get_agent_default_observation_array()
+            partialObservationResult[0] = self._get_obs(agent) #The agent's result is present in the 0th element of its result
+            partialObservationResult[1] = self._get_final_vend_price(agent) #The agent's result is present in the 0th element of its result
+            tmpObsArray.append(partialObservationResult)
 
         concatObsArray = np.array(tmpObsArray).astype(np.float32) 
-
-
         return concatObsArray, sum(reward_arr), isTerminal,  info_arr
 
 
+    def _get_final_vend_price(self, agent):
+        """
+            accepts an agent and returns its final vending
+        """
+        return agent.vendingPrice
+    
     def _get_obs(self, agent):
         """
             accepts an Agent, and returns its observation/state
@@ -173,6 +195,9 @@ class MultiAgentMacodiacEnvironment(Env):
             self.policy_agents[i].info = {}
             self.policy_agents[i].done = False
             self.policy_agents[i].vendingPrice = 0
+        
+        for i in range(len(self.consumers_arr)):
+            self.consumers_arr[i].money += self.consumers_arr[i].daily_income
 
         self.environment_timesteps = self.environment_starter_timesteps
         
@@ -180,4 +205,4 @@ class MultiAgentMacodiacEnvironment(Env):
 
 
     def get_agent_default_observation_array(self):
-        return [0.0, 60.0, 5.0]
+        return [0.0, 0.0, 60.0, 5.0]

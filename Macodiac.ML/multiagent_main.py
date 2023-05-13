@@ -24,11 +24,12 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 1_000_000
-        self.numEpisodes = 5
-        self.numAgents = 3
+        self.numTrainingIterations = 1_000
+        self.numEpisodes = 15
+        self.envTimesteps = 15
+        self.numAgents = 10
 
-        self.env = MultiAgentMacodiacEnvironment(envTimesteps=15, numAgents=self.numAgents)
+        self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)
 
 
@@ -38,21 +39,22 @@ class MultiagentMain():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = False
+        self.__MODE_LOADMODEL__ = True
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = False
+        self.__MODE_TRAINMODEL__ = True
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = True
+        self.__MODE_RANDOMSAMPLE__ = False
 
 
     def Run(self):
         """
         Runs the project
         """
-
+        if self.__MODE_RANDOMSAMPLE__:
+            self.run_multiagent_project_with_rand_test(self.env, 5)
 
         model = self.create_model(self.env, self.log_path)
 
@@ -64,9 +66,7 @@ class MultiagentMain():
                                      self.numTrainingIterations, self.save_path_intermittent)
             self.save_model(model, self.save_path)
 
-        if self.__MODE_RANDOMSAMPLE__:
-            self.run_multiagent_project_with_rand_test(self.env, 5)
-        else:
+        if not self.__MODE_RANDOMSAMPLE__:
             self.run_project(self.env, self.numEpisodes, model)
             self.policy_evaluation(model, self.env, self.numEpisodes)
 
@@ -86,21 +86,16 @@ class MultiagentMain():
                 #env.render()
                 iterator+=1
                 print(f'iterator:{iterator}')
-                action_arr = []
-                # for i in range(len(env.policy_agents)):
-                #     actionForAgent = env.action_space.sample()
-                #     action_arr.append(actionForAgent)
+                action_arr = env.action_space.sample()
                 
                 print(f'action for agents:\t{action_arr}')
                 
-                obs_arr, reward, isDone, info_arr = env.step(env.action_space.sample())
+                obs_arr, reward, isDone, info_arr = env.step(action_arr)
                 
-                # for i, reward in enumerate(reward_arr):
-                #     print(f'reward is {reward}')
-
                 agent_scores.append(reward)
 
                 print(f'rewards for agents:\t{reward}')
+                print(f'obs for agents:\t{obs_arr}')
 
                 done = isDone
             print(f'Episode:{episode} | Aggregate agent scores:(Sum:{sum(agent_scores)})')
