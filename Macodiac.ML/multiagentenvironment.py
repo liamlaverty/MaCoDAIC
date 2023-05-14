@@ -54,7 +54,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
         self.action_space = spaces.MultiDiscrete(arr)
 
-        # the observation space is a nAgents by nActions array of float32 numbers between 0-100
+        # the observation space is a nAgents by nActions array of float32 numbers between -99-99
         # also contains the static value for marginal cost and wholesale price
         self.observation_space = spaces.Box(low=-100,high=100, shape=(numAgents, 4), dtype=np.float32)
 
@@ -80,7 +80,7 @@ class MultiAgentMacodiacEnvironment(Env):
         agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
         baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
         #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
-        agent.vendingPrice = baseAgentVendingPrice
+        agent.vendingPrice = max(baseAgentVendingPrice, 1)
         # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
@@ -268,4 +268,4 @@ class MultiAgentMacodiacEnvironment(Env):
 
 
     def get_agent_default_observation_array(self):
-        return [0.0, 0.0, 60.0, 5.0]
+        return [0.0, 0.0, self.env_wholesale_price, self.env_agent_marginal_cost]
