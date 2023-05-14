@@ -84,12 +84,6 @@ class MultiAgentMacodiacEnvironment(Env):
         # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
-        # if agent.state > 0:
-        #     reward = 1
-        # elif agent.state == 0:
-        #     reward = 0
-        # else:
-        #     reward = -1
         reward = agent.reward
         info = {}
         return agent.state, reward, False, info
@@ -160,7 +154,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
         while consumer.money > 0:            
             if agents_arr[lowestPriceAgnetIndex].vendingPrice < consumer.money:
-                agents_arr[lowestPriceAgnetIndex].reward += agents_arr[lowestPriceAgnetIndex].vendingPrice
+                agents_arr[lowestPriceAgnetIndex].reward += (agents_arr[lowestPriceAgnetIndex].vendingPrice - self.env_wholesale_price)
                 consumer.money -= agents_arr[lowestPriceAgnetIndex].vendingPrice
                 consumer.total_consumed += 1
             else:

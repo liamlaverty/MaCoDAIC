@@ -25,7 +25,7 @@ class MultiagentMain():
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.numTrainingIterations = 1_000
-        self.numEpisodes = 150
+        self.numEpisodes = 25
         self.envTimesteps = 15
         self.numAgents = 10
 
@@ -42,11 +42,11 @@ class MultiagentMain():
         self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = False
+        self.__MODE_TRAINMODEL__ = True
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = True
+        self.__MODE_RANDOMSAMPLE__ = False
 
 
     def Run(self):
@@ -54,7 +54,7 @@ class MultiagentMain():
         Runs the project
         """
         if self.__MODE_RANDOMSAMPLE__:
-            self.run_multiagent_project_with_rand_test(self.env, 5)
+            self.run_multiagent_project_with_rand_test(self.env, self.numEpisodes)
 
         model = self.create_model(self.env, self.log_path)
 
@@ -97,8 +97,10 @@ class MultiagentMain():
                 print(f'rewards for agents:\t{reward}')
                 print(f'obs for agents:\t{obs_arr}')
 
+                if done:
+                    print(f'is done')
                 done = isDone
-            print(f'Episode:{episode} | Aggregate agent scores:(Sum:{sum(agent_scores)})')
+            print(f'Episode:{episode} | \nAggregate agent scores:(Sum:{sum(agent_scores)})\n MeanAvg agent scores:({np.mean(agent_scores)})')
         env.close()
 
 
