@@ -39,14 +39,14 @@ class MultiagentMain():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = True
+        self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = True
+        self.__MODE_TRAINMODEL__ = False
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = False
+        self.__MODE_RANDOMSAMPLE__ = True
 
 
     def Run(self):

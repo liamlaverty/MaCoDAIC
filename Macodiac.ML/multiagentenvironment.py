@@ -10,13 +10,13 @@ class AgentObject:
     def __init__(self):
         self.state = []
         self.vendingPrice = 0
+        self.reward = 0
 
 class ConsumerObject:
     def __init__(self):
         self.demand = 1
         self.utility = 0
-        self.money = 100
-        self.daily_income = 20
+        self.money = 0
 
 class MultiAgentMacodiacEnvironment(Env):
     """
@@ -26,9 +26,10 @@ class MultiAgentMacodiacEnvironment(Env):
     state = 0
     environment_timesteps = 0
     environment_starter_timesteps = 150
-    env_wholesale_price = 60        # the price agents pay to purchase goods
-    env_agent_marginal_cost = 5     # the marginal cost of vending
-    num_consumers = 5
+    env_wholesale_price = 50        # the price agents pay to purchase goods
+    env_agent_marginal_cost = 0     # the marginal cost of vending
+    num_consumers = 2
+    consumer_total_money_per_turn = 25000
     consumers_arr = []
 
     def __init__(self, envTimesteps:int, numAgents: int):
@@ -81,13 +82,13 @@ class MultiAgentMacodiacEnvironment(Env):
         # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
-        if agent.state > 0:
-            reward = 1
-        elif agent.state == 0:
-            reward = 0
-        else:
-            reward = -1
-
+        # if agent.state > 0:
+        #     reward = 1
+        # elif agent.state == 0:
+        #     reward = 0
+        # else:
+        #     reward = -1
+        reward = agent.reward
         info = {}
         return agent.state, reward, False, info
 
@@ -112,11 +113,11 @@ class MultiAgentMacodiacEnvironment(Env):
         for i, agent in enumerate(self.policy_agents):
             self.set_agent_action(action_arr[i], agent, self.action_space[i])
 
+        for i, consumer in enumerate(self.consumers_arr):
+            self.set_consumer_purchases(self.policy_agents, consumer)
+
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
-
-        # for i, consumer in enumerate(self.consumers_arr):
-        #     self.step_consumer(self.policy_agents)
 
         for agent in self.policy_agents:
             obs_arr.append(self._get_obs(agent))
@@ -140,6 +141,30 @@ class MultiAgentMacodiacEnvironment(Env):
 
         concatObsArray = np.array(tmpObsArray).astype(np.float32) 
         return concatObsArray, sum(reward_arr), isTerminal,  info_arr
+
+
+    def set_consumer_purchases(self, agents_arr, consumer):
+        """
+        So long as the consumer has money, loops through the agents, and selects the lowest
+        price agent. 
+
+        Purchases as many items from the agent as possible
+        """
+        lowestPriceAgnetIndex = 0
+            
+        for i, agent in agents_arr:
+            if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex]:
+                lowestPriceAgnetIndex = i
+
+        while consumer.money > 0:            
+            if lowestPriceAgnetIndex.vendingPrice < consumer.money:
+                agents_arr[lowestPriceAgnetIndex].reward += agents_arr[lowestPriceAgnetIndex].vendingPrice
+                consumer.money -= agents_arr[lowestPriceAgnetIndex].vendingPrice
+            else:
+                # set the consumer's money to 0 if the vend price
+                # is less than the remaining money (stops infinite loop)
+                consumer.money = 0
+
 
 
     def _get_final_vend_price(self, agent):
@@ -196,12 +221,47 @@ class MultiAgentMacodiacEnvironment(Env):
             self.policy_agents[i].done = False
             self.policy_agents[i].vendingPrice = 0
         
+        consumerMoneyEach = self.consumer_total_money_per_turn / self.num_consumers
         for i in range(len(self.consumers_arr)):
-            self.consumers_arr[i].money += self.consumers_arr[i].daily_income
+            self.consumers_arr[i].money = consumerMoneyEach
 
         self.environment_timesteps = self.environment_starter_timesteps
         
         return np.array(obs_arr).astype(np.float32)
+
+    def get_consumer_demand_schedule(self):
+        schedule = [
+            [0, 1000],
+            [10, 900],
+            [20, 800],
+            [30, 700],
+            [40, 600],
+            [50, 500],
+            [60, 400],
+            [70, 300],
+            [80, 200],
+            [90, 100],
+            [100, 0]
+        ]
+        return schedule
+    
+    def get_consumer_quantity_demanded_at_price(self, price):
+        dmnd_schedule = self.get_consumer_demand_schedule()
+        roundedPrice = round(price, -1)
+        for i in dmnd_schedule:
+            if i[0] == roundedPrice:
+                return i[1]
+
+        return 0
+      
+        # point_a = dmnd_schedule()[0]
+        # point_b = dmnd_schedule()[len(dmnd_schedule)]
+
+
+        # change_in_x = point_a[0] - point_b[0]
+        # change_in_y = point_a[1] - point_b[1]
+        # gradient = change_in_y / change_in_x
+
 
 
     def get_agent_default_observation_array(self):
