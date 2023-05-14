@@ -24,10 +24,10 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 1_000_000
+        self.numTrainingIterations = 5_000_000
         self.numEpisodes = 200
-        self.envTimesteps = 10
-        self.numAgents = 1
+        self.envTimesteps = 2
+        self.numAgents = 5
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)
@@ -39,7 +39,7 @@ class MultiagentMain():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = True
+        self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
         self.__MODE_TRAINMODEL__ = True
@@ -169,7 +169,7 @@ class MultiagentMain():
         @param numTimesteps: the number of training iterations
         """
         
-        saveEveryNSteps = 1_000_000
+        saveEveryNSteps = 100_000
         
         if numTimesteps < saveEveryNSteps:
             model.learn(total_timesteps=numTimesteps)
