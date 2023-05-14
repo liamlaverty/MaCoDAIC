@@ -17,6 +17,7 @@ class ConsumerObject:
         self.demand = 1
         self.utility = 0
         self.money = 0
+        self.total_consumed = 0
 
 class MultiAgentMacodiacEnvironment(Env):
     """
@@ -76,9 +77,10 @@ class MultiAgentMacodiacEnvironment(Env):
         # agent.state is the percentage price diff from the 
         # wholesale price
         agent.state = action - 100
-        agentBaseVendingPrice = self.env_wholesale_price * (agent.state / 100)
-        agentMarginalCostAddedVendingPrice = agentBaseVendingPrice + self.env_agent_marginal_cost
-        agent.vendingPrice = agentMarginalCostAddedVendingPrice
+        agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
+        baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
+        #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
+        agent.vendingPrice = baseAgentVendingPrice
         # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
@@ -152,14 +154,15 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         lowestPriceAgnetIndex = 0
             
-        for i, agent in agents_arr:
-            if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex]:
+        for i, agent in enumerate(agents_arr):
+            if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex].vendingPrice:
                 lowestPriceAgnetIndex = i
 
         while consumer.money > 0:            
-            if lowestPriceAgnetIndex.vendingPrice < consumer.money:
+            if agents_arr[lowestPriceAgnetIndex].vendingPrice < consumer.money:
                 agents_arr[lowestPriceAgnetIndex].reward += agents_arr[lowestPriceAgnetIndex].vendingPrice
                 consumer.money -= agents_arr[lowestPriceAgnetIndex].vendingPrice
+                consumer.total_consumed += 1
             else:
                 # set the consumer's money to 0 if the vend price
                 # is less than the remaining money (stops infinite loop)
