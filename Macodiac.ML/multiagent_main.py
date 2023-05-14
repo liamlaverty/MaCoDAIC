@@ -25,7 +25,7 @@ class MultiagentMain():
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.numTrainingIterations = 20_000
-        self.numEpisodes = 20_000
+        self.numEpisodes = 200
         self.envTimesteps = 5
         self.numAgents = 1
 
@@ -39,7 +39,7 @@ class MultiagentMain():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = True
+        self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
         self.__MODE_TRAINMODEL__ = True
@@ -97,6 +97,7 @@ class MultiagentMain():
 
                 print(f'rewards for agents:\t{reward}')
                 print(f'obs for agents:\t{obs_arr}')
+                print(f'px for agents:\t{info_arr}')
 
                 if done:
                     print(f'is done')
