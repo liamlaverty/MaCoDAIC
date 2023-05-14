@@ -31,7 +31,7 @@ class MultiAgentMacodiacEnvironment(Env):
     env_wholesale_price = 50        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
     num_consumers = 20
-    consumer_total_money_per_turn = 2500
+    consumer_total_money_per_turn = 25000
     consumers_arr = []
 
     def __init__(self, envTimesteps:int, numAgents: int):
