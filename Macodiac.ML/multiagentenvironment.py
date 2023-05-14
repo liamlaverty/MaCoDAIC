@@ -152,15 +152,36 @@ class MultiAgentMacodiacEnvironment(Env):
             if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex].vendingPrice:
                 lowestPriceAgnetIndex = i
 
-        while consumer.money > 0:            
-            if agents_arr[lowestPriceAgnetIndex].vendingPrice < consumer.money:
-                agents_arr[lowestPriceAgnetIndex].reward += (agents_arr[lowestPriceAgnetIndex].vendingPrice - self.env_wholesale_price)
-                consumer.money -= agents_arr[lowestPriceAgnetIndex].vendingPrice
-                consumer.total_consumed += 1
-            else:
-                # set the consumer's money to 0 if the vend price
-                # is less than the remaining money (stops infinite loop)
-                consumer.money = 0
+        lowestAgentVendPrice = agents_arr[lowestPriceAgnetIndex].vendingPrice
+
+        # instead of this while loop, just return the 
+        quantityPurchasable = np.floor(consumer.money / lowestAgentVendPrice)
+        consumerConsumed = quantityPurchasable
+        tmpAgentRewardPerUnitSold = (lowestAgentVendPrice - self.env_wholesale_price)
+        agentReward = tmpAgentRewardPerUnitSold * consumerConsumed
+
+        consumer.money = 0
+        consumer.total_consumed += consumerConsumed
+        agents_arr[lowestPriceAgnetIndex].reward += agentReward
+
+        # agents_arr[lowestPriceAgnetIndex].reward = agentReward
+        # consumer.money = 0
+        # consumer.total_consumed = 
+
+        # consumerConsumedInWhile = 0
+        # agentRewardInWhile = 0
+        # while consumer.money > 0:            
+        #     if lowestAgentVendPrice <= consumer.money:
+        #         myAgentReward = (lowestAgentVendPrice - self.env_wholesale_price)
+        #         agents_arr[lowestPriceAgnetIndex].reward += myAgentReward
+        #         agentRewardInWhile += myAgentReward
+        #         consumer.money -= lowestAgentVendPrice
+        #         consumer.total_consumed += 1
+        #         consumerConsumedInWhile +=1
+        #     else:
+        #         # set the consumer's money to 0 if the vend price
+        #         # is less than the remaining money (stops infinite loop)
+        #         consumer.money = 0
 
 
 

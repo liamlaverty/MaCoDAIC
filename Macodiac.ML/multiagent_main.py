@@ -24,10 +24,10 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 1_000
-        self.numEpisodes = 25
-        self.envTimesteps = 15
-        self.numAgents = 10
+        self.numTrainingIterations = 20_000
+        self.numEpisodes = 20_000
+        self.envTimesteps = 5
+        self.numAgents = 1
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)
@@ -39,7 +39,7 @@ class MultiagentMain():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = False
+        self.__MODE_LOADMODEL__ = True
 
         # set to true if you want to train and then save the model
         self.__MODE_TRAINMODEL__ = True
@@ -62,6 +62,7 @@ class MultiagentMain():
             model = self.load_model(self.env, model, self.save_path)
 
         if self.__MODE_TRAINMODEL__: 
+
             model = self.train_model(model,
                                      self.numTrainingIterations, self.save_path_intermittent)
             self.save_model(model, self.save_path)
@@ -149,7 +150,7 @@ class MultiagentMain():
 
             runningAvg = np.mean(scores)
 
-            print(f'Episode:{episode} \t| Score:{score} \t\t| RunningAvg: {round(runningAvg, 2)}')
+            print(f'Episode:\t{episode} \t| Score:\t{score} \t\t| RunningAvg: {round(runningAvg, 2)}')
         env.close()
 
 
