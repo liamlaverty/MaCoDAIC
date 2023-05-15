@@ -48,6 +48,7 @@ class TensorboardPriceCallback(BaseCallback):
         return super()._on_rollout_end()
     
     def _on_step(self) -> bool:
+        self.reset()
         # self.iterator +=1
         # agent_arr = self.training_env.get_attr('policy_agents')[0]
         
@@ -58,12 +59,15 @@ class TensorboardPriceCallback(BaseCallback):
 
 
         pxList = []
+        acceptedPxList = []
         vendorsMadeSale = 0
         quantitySold = 0
         countNoSale = 0
         countWiSale = 0
-        acceptedVendedPx = 0
         meanPxOffered = 0
+        agent_sales = 0
+        agent_vend_px = 0
+        agent_reward = 0
 
         for i, agentInfo in enumerate(info_arr):
             agent_sales = info_arr[i]['sold']
@@ -76,7 +80,7 @@ class TensorboardPriceCallback(BaseCallback):
                 vendorsMadeSale += 1
                 quantitySold += agent_sales
                 countWiSale += 1
-                acceptedVendedPx = agent_vend_px
+                acceptedPxList.append(agent_vend_px)
             else:
                 countNoSale += 1
             
@@ -85,9 +89,10 @@ class TensorboardPriceCallback(BaseCallback):
             self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
             
         meanPxOffered = np.mean(pxList)
+        meanPxAccepted = np.mean(acceptedPxList)
 
         self.logger.record('vending/avgerage_offered_px_value', meanPxOffered)
-        self.logger.record('vending/actual_accepted_px_value', acceptedVendedPx)
+        self.logger.record('vending/average_accepted_px_value', meanPxAccepted)
         self.logger.record('vending/quantity_sold_count', quantitySold)
         self.logger.record('vending/vendors_made_sale_count', vendorsMadeSale)
         self.logger.record('vending/count_no_sale', countNoSale)
@@ -153,6 +158,12 @@ class MultiAgentMacodiacEnvironment(Env):
         print('-- ENV SETTINGS --')
 
 
+    def clear_agent_stats(self, agent):
+        # agent.state = []
+        agent.vendingPrice = 0
+        agent.reward = 0
+        agent.quantitySold = 0
+
     def set_agent_action(self, action, agent, actionSpace):
         # agent.state is the percentage price diff from the wholesale price
         agent.state = action
@@ -193,12 +204,13 @@ class MultiAgentMacodiacEnvironment(Env):
         info_arr = {'n': []}
         
         for i, agent in enumerate(self.policy_agents):
+            self.clear_agent_stats(agent)
             self.set_agent_action(action_arr[i], agent, self.action_space[i])
 
         for i, consumer in enumerate(self.consumers_arr):
             lowestPriceAgnetIndex, lowestAgentVendPrice,vendingPrices_arr = self.set_consumer_purchases(self.policy_agents, consumer)
         
-        print(f'sold to agent:[{lowestPriceAgnetIndex}] with price [{lowestAgentVendPrice}]. Options were {vendingPrices_arr}.')# Agent reward is {self.policy_agents[lowestPriceAgnetIndex].reward}')
+        # print(f'sold to agent:[{lowestPriceAgnetIndex}] with price [{lowestAgentVendPrice}]. Options were {vendingPrices_arr}. Agent reward is {self.policy_agents[lowestPriceAgnetIndex].reward}')
 
 
         anyConsumed = False
@@ -216,6 +228,7 @@ class MultiAgentMacodiacEnvironment(Env):
             done_arr.append(self._get_done(agent))
             info_arr['n'].append(self._get_info(agent, i))
 
+        # print(info_arr)
         # for agent in self.policy_agents:
            
 
