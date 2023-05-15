@@ -24,9 +24,9 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 100_000
+        self.numTrainingIterations = 1_000_000
         self.numEpisodes = 20
-        self.envTimesteps = 50
+        self.envTimesteps = 25
         self.numAgents = 3
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)

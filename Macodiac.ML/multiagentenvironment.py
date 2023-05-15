@@ -84,19 +84,19 @@ class TensorboardPriceCallback(BaseCallback):
             else:
                 countNoSale += 1
             
-            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
-            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
-            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
             
         meanPxOffered = np.mean(pxList)
         meanPxAccepted = np.mean(acceptedPxList)
 
-        self.logger.record('vending/avgerage_offered_px_value', meanPxOffered)
-        self.logger.record('vending/average_accepted_px_value', meanPxAccepted)
-        self.logger.record('vending/quantity_sold_count', quantitySold)
-        self.logger.record('vending/vendors_made_sale_count', vendorsMadeSale)
-        self.logger.record('vending/count_no_sale', countNoSale)
-        self.logger.record('vending/count_wi_sale', countWiSale)
+        self.logger.record('a_vending/avgerage_offered_px_value', meanPxOffered)
+        self.logger.record('a_vending/average_accepted_px_value', meanPxAccepted)
+        self.logger.record('a_vending/quantity_sold_count', quantitySold)
+        self.logger.record('a_vending/vendors_made_sale_count', vendorsMadeSale)
+        self.logger.record('a_vending/count_no_sale', countNoSale)
+        self.logger.record('a_vending/count_wi_sale', countWiSale)
 
         return True
 
