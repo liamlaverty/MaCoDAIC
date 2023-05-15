@@ -5,6 +5,7 @@ from gym import Env
 from gym import spaces
 import numpy as np
 import random
+from stable_baselines3.common.callbacks import BaseCallback
 
 class AgentObject:
     def __init__(self):
@@ -20,6 +21,36 @@ class ConsumerObject:
         self.money = 0
         self.total_consumed = 0
 
+
+class TensorboardPriceCallback(BaseCallback):
+    """ 
+    custom logger to record the price charged by agents
+    """
+    def __init__(self, verbose=0):
+        super().__init__(verbose)
+
+    def _on_step(self) -> bool:
+        agent_arr = self.training_env.get_attr('policy_agents')[0]
+        pxList = []
+        acceptedVendedPx = 0
+        quantitySold = 0
+        vendorsMadeSale = 0
+        for agent in agent_arr:
+            if agent.quantitySold > 0:
+                acceptedVendedPx = agent.vendingPrice
+                quantitySold += agent.quantitySold
+                vendorsMadeSale += 1
+            pxList.append(agent.vendingPrice)
+
+        meanPxOffered = np.mean(pxList)
+
+        self.logger.record('vending/avgerage_offered_px_value', meanPxOffered)
+        self.logger.record('vending/actual_accepted_px_value', acceptedVendedPx)
+        self.logger.record('vending/quantity_sold_count', quantitySold)
+        self.logger.record('vending/vendors_made_sale_count', vendorsMadeSale)
+
+        return True
+
 class MultiAgentMacodiacEnvironment(Env):
     """
     Builds a profit maximising agent environment, supporting
@@ -33,6 +64,7 @@ class MultiAgentMacodiacEnvironment(Env):
     num_consumers = 20
     consumer_total_money_per_turn = 2500
     consumers_arr = []
+
 
     def __init__(self, envTimesteps:int, numAgents: int):
         """

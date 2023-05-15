@@ -1,7 +1,7 @@
 import os
 import gymnasium as gym
 from gymnasium import Env
-from environment import MacodiacEnvironment
+from multiagentenvironment import TensorboardPriceCallback
 from multiagentenvironment import MultiAgentMacodiacEnvironment
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.env_checker import check_env
@@ -27,7 +27,7 @@ class MultiagentMain():
         self.numTrainingIterations = 1_000_000
         self.numEpisodes = 20
         self.envTimesteps = 20
-        self.numAgents = 10
+        self.numAgents = 2
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)
@@ -172,12 +172,14 @@ class MultiagentMain():
         saveEveryNSteps = 100_000
         
         if numTimesteps < saveEveryNSteps:
-            model.learn(total_timesteps=numTimesteps)
+            model.learn(total_timesteps=numTimesteps,
+                        callback=TensorboardPriceCallback())
 
         else:
             rangeUpper = int(numTimesteps / saveEveryNSteps)
             for i in range(1,rangeUpper+1):
-                model.learn(total_timesteps=saveEveryNSteps)
+                model.learn(total_timesteps=saveEveryNSteps,
+                            callback=TensorboardPriceCallback())
                 model.save(os.path.join(savePath, f'interim-{i}'))
 
         return model
