@@ -39,24 +39,30 @@ class MultiAgentMacodiacEnvironment(Env):
         Initialises the class
         """
         self.environment_starter_timesteps = envTimesteps
-        
         self.policy_agents = []
+        self.observation_space = []
+        # self.agents = [numAgents]
+        
+        # creates an array full of 200's shaped [200,200,200], with numAgents number of element
+
+
+        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 20) )
+
         for i in range(numAgents):
             self.policy_agents.append(AgentObject())
         
         for i in range(self.num_consumers):
             self.consumers_arr.append(ConsumerObject())
 
-        self.observation_space = []
-        self.agents = [numAgents]
-
-        arr = np.full(numAgents, 200) # creates an array full of 200's shaped [200,200,200], with numAgents number of element
 
 
-        self.action_space = spaces.MultiDiscrete(arr)
+
 
         # the observation space is a nAgents by nActions array of float32 numbers between -99-99
-        # also contains the static value for marginal cost and wholesale price
+        # also contains the wholesale price
+        # Observations space:
+        # 0: 
+
         self.observation_space = spaces.Box(low=-100,high=100, shape=(numAgents, 3), dtype=np.int32)
 
         print(f'obs_space.sample: {self.observation_space.sample()}')
@@ -77,7 +83,7 @@ class MultiAgentMacodiacEnvironment(Env):
     def set_agent_action(self, action, agent, actionSpace):
         # agent.state is the percentage price diff from the 
         # wholesale price
-        agent.state = action  - 100
+        agent.state = (action * 10) - 100
         agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
         baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
         #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
@@ -233,40 +239,9 @@ class MultiAgentMacodiacEnvironment(Env):
         
         return np.array(obs_arr).astype(np.int32)
 
-    def get_consumer_demand_schedule(self):
-        schedule = [
-            [0, 1000],
-            [10, 900],
-            [20, 800],
-            [30, 700],
-            [40, 600],
-            [50, 500],
-            [60, 400],
-            [70, 300],
-            [80, 200],
-            [90, 100],
-            [100, 0]
-        ]
-        return schedule
-    
-    def get_consumer_quantity_demanded_at_price(self, price):
-        dmnd_schedule = self.get_consumer_demand_schedule()
-        roundedPrice = round(price, -1)
-        for i in dmnd_schedule:
-            if i[0] == roundedPrice:
-                return i[1]
-
-        return 0
-      
-        # point_a = dmnd_schedule()[0]
-        # point_b = dmnd_schedule()[len(dmnd_schedule)]
-
-
-        # change_in_x = point_a[0] - point_b[0]
-        # change_in_y = point_a[1] - point_b[1]
-        # gradient = change_in_y / change_in_x
-
-
 
     def get_agent_default_observation_array(self):
+        """
+        Gets a default observation for this space
+        """
         return [0.0, 0.0, self.env_wholesale_price]

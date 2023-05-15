@@ -24,10 +24,10 @@ class MultiagentMain():
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 5_000_000
-        self.numEpisodes = 200
-        self.envTimesteps = 2
-        self.numAgents = 5
+        self.numTrainingIterations = 10_000
+        self.numEpisodes = 20
+        self.envTimesteps = 20
+        self.numAgents = 2
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)
@@ -156,7 +156,7 @@ class MultiagentMain():
 
 
     def create_model(self, env: MultiAgentMacodiacEnvironment, log_path: str):
-        model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=log_path)
+        model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=log_path, device="cpu")
         return model
 
 
@@ -176,7 +176,7 @@ class MultiagentMain():
 
         else:
             rangeUpper = int(numTimesteps / saveEveryNSteps)
-            for i in range(1,rangeUpper+1):
+            for i in range(9,rangeUpper+1):
                 model.learn(total_timesteps=saveEveryNSteps)
                 model.save(os.path.join(savePath, f'interim-{i}'))
 
