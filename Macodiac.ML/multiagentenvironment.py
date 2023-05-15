@@ -31,7 +31,7 @@ class MultiAgentMacodiacEnvironment(Env):
     env_wholesale_price = 50        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
     num_consumers = 20
-    consumer_total_money_per_turn = 25000
+    consumer_total_money_per_turn = 2500
     consumers_arr = []
 
     def __init__(self, envTimesteps:int, numAgents: int):
@@ -41,12 +41,6 @@ class MultiAgentMacodiacEnvironment(Env):
         self.environment_starter_timesteps = envTimesteps
         self.policy_agents = []
         self.observation_space = []
-        # self.agents = [numAgents]
-        
-        # creates an array full of 200's shaped [200,200,200], with numAgents number of element
-
-
-        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 20) )
 
         for i in range(numAgents):
             self.policy_agents.append(AgentObject())
@@ -54,16 +48,19 @@ class MultiAgentMacodiacEnvironment(Env):
         for i in range(self.num_consumers):
             self.consumers_arr.append(ConsumerObject())
 
-
-
+        
+        # creates an array full of 10's shaped [20,20,20], of length numAgents
+        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 10) )
 
 
         # the observation space is a nAgents by nActions array of float32 numbers between -99-99
         # also contains the wholesale price
         # Observations space:
-        # 0: 
-
-        self.observation_space = spaces.Box(low=-100,high=100, shape=(numAgents, 3), dtype=np.int32)
+        # 0: agent's state, after the action has been applied
+        # 1: agent's vending price in this round
+        # 2: agent's count of sold items
+        # 3: the wholesale price in this round
+        self.observation_space = spaces.Box(low=0,high=200, shape=(numAgents, 3), dtype=np.int32)
 
         print(f'obs_space.sample: {self.observation_space.sample()}')
 
@@ -81,13 +78,14 @@ class MultiAgentMacodiacEnvironment(Env):
 
 
     def set_agent_action(self, action, agent, actionSpace):
-        # agent.state is the percentage price diff from the 
-        # wholesale price
-        agent.state = (action * 10) - 100
-        agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
-        baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
-        #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
-        agent.vendingPrice = max(baseAgentVendingPrice, 1)
+        # agent.state is the percentage price diff from the wholesale price
+        agent.state = action * 10
+        agent.vendingPrice = self.env_wholesale_price + agent.state
+
+        # agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
+        # baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
+        # #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
+        # agent.vendingPrice = max(baseAgentVendingPrice, 1)
         # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
@@ -140,6 +138,7 @@ class MultiAgentMacodiacEnvironment(Env):
             partialObservationResult = self.get_agent_default_observation_array()
             partialObservationResult[0] = self._get_obs(agent) #The agent's result is present in the 0th element of its result
             partialObservationResult[1] = self._get_final_vend_price(agent) #The agent's result is present in the 0th element of its result
+            partialObservationResult[2] = self._get_quantity_sold(agent) #The agent's result is present in the 0th element of its result
             tmpObsArray.append(partialObservationResult)
 
         concatObsArray = np.array(tmpObsArray).astype(np.int32) 
@@ -174,7 +173,11 @@ class MultiAgentMacodiacEnvironment(Env):
 
 
 
-
+    def _get_quantity_sold(self, agent):
+        """
+            accepts an agent, and returns the number of items it sold
+        """
+        return agent.quantitySold
 
     def _get_final_vend_price(self, agent):
         """
@@ -244,4 +247,4 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         Gets a default observation for this space
         """
-        return [0.0, 0.0, self.env_wholesale_price]
+        return [0.0, 0.0, 0]# , self.env_wholesale_price]
