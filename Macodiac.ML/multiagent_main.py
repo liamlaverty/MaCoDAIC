@@ -27,7 +27,7 @@ class MultiagentMain():
         self.numTrainingIterations = 1_000_000
         self.numEpisodes = 20
         self.envTimesteps = 25
-        self.numAgents = 3
+        self.numAgents = 2
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)

@@ -5,6 +5,7 @@ from gym import Env
 from gym import spaces
 import numpy as np
 import random
+from random import shuffle
 from stable_baselines3.common.callbacks import BaseCallback
 
 class AgentObject:
@@ -26,13 +27,6 @@ class TensorboardPriceCallback(BaseCallback):
     """ 
     custom logger to record the price charged by agents
     """
-    # iterator = 0
-    # offeredPxList = []
-    # acceptedPxList = []
-    # vendorsMadeSaleList = []
-    # quantitySoldList = []
-
-
     runningAvgMeanPxOffered = 0
     runningAvgAcceptedVendedPx = 0
 
@@ -157,6 +151,8 @@ class MultiAgentMacodiacEnvironment(Env):
         print(self.environment_timesteps)
         print('-- ENV SETTINGS --')
 
+    def clear_consumer_stats(self, consumer):
+        consumer.money = self.consumerMoneyEach
 
     def clear_agent_stats(self, agent):
         # agent.state = []
@@ -208,10 +204,9 @@ class MultiAgentMacodiacEnvironment(Env):
             self.set_agent_action(action_arr[i], agent, self.action_space[i])
 
         for i, consumer in enumerate(self.consumers_arr):
-            lowestPriceAgnetIndex, lowestAgentVendPrice,vendingPrices_arr = self.set_consumer_purchases(self.policy_agents, consumer)
-        
-        # print(f'sold to agent:[{lowestPriceAgnetIndex}] with price [{lowestAgentVendPrice}]. Options were {vendingPrices_arr}. Agent reward is {self.policy_agents[lowestPriceAgnetIndex].reward}')
-
+            self.clear_consumer_stats(consumer)
+            self.alt_set_consumer_purchases(self.policy_agents, consumer)
+    
 
         anyConsumed = False
         for consumer in self.consumers_arr:
@@ -248,7 +243,67 @@ class MultiAgentMacodiacEnvironment(Env):
             tmpObsArray.append(partialObservationResult)
 
         concatObsArray = np.array(tmpObsArray).astype(np.int32) 
-        return concatObsArray, sum(reward_arr), isTerminal,  info_arr
+        return concatObsArray, float(sum(reward_arr)), isTerminal,  info_arr
+
+    def alt_set_consumer_purchases(self, agents_arr, consumer):
+        """
+        So long as the consumer has money, loops through the agents, and selects the lowest
+        priced agent. 
+
+        if multiple agents share the same price points, distributes the sales across them all
+        """
+        lowestAbsolutePrice = 0
+        lowestPriceAgentIndexList = []
+        vendingPrices = []
+
+        for i, agent in enumerate(agents_arr):
+            vendingPrices.append(agent.vendingPrice)
+
+      
+        # print(f'prices are: {vendingPrices}')
+        lowestAbsolutePrice = min(vendingPrices)
+       
+        # gather all of the lowest price agents
+        for i, agent in enumerate(agents_arr):
+            if agent.vendingPrice == lowestAbsolutePrice:
+                lowestPriceAgentIndexList.append(i)
+
+        shuffle(lowestPriceAgentIndexList)
+
+        # while the consumer still has money, purchase
+        # items from the vendors
+        while consumer.money > 0:
+            # loop through each vendor, purchase one item from them
+            for agentIndex in lowestPriceAgentIndexList:
+                agentToPurchaseFrom = agents_arr[agentIndex]
+                
+                if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
+                    raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
+
+                if consumer.money > agentToPurchaseFrom.vendingPrice:
+                    self.consumer_purchase_from_agent(consumer, agentToPurchaseFrom)
+                else:
+                    consumer.money = 0
+                    break
+        
+        # if vendingPrices[0] == vendingPrices[1]:
+        #     print(f'hit condition: [{vendingPrices[0]},{vendingPrices[1]}]')
+        # for i, agent in enumerate(agents_arr):
+        #     print(f'agentPrices:{agent.vendingPrice} | agentSold: {agent.quantitySold}')
+            
+
+
+    
+    def consumer_purchase_from_agent(self, consumer, agent):
+        if consumer.money < agent.vendingPrice:
+            raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agent.vendingPrice}]')
+        consumer.money -= agent.vendingPrice
+        consumer.total_consumed += 1
+        agent.quantitySold += 1
+        agent.reward += (agent.vendingPrice - self.env_wholesale_price)
+        
+
+
 
 
     def set_consumer_purchases(self, agents_arr, consumer):
@@ -343,9 +398,10 @@ class MultiAgentMacodiacEnvironment(Env):
             self.policy_agents[i].vendingPrice = 0
             self.policy_agents[i].quantitySold = 0
         
-        consumerMoneyEach = self.consumer_total_money_per_turn / self.num_consumers
+        self.consumerMoneyEach = self.consumer_total_money_per_turn / self.num_consumers
         for i in range(len(self.consumers_arr)):
-            self.consumers_arr[i].money = consumerMoneyEach
+            self.clear_consumer_stats(self.consumers_arr[i])
+            # self.consumers_arr[i].money = consumerMoneyEach
 
         self.environment_timesteps = self.environment_starter_timesteps
         
