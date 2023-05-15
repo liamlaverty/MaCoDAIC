@@ -5,6 +5,7 @@ from gym import Env
 from gym import spaces
 import numpy as np
 import random
+from stable_baselines3.common.callbacks import BaseCallback
 
 class AgentObject:
     def __init__(self):
@@ -20,6 +21,85 @@ class ConsumerObject:
         self.money = 0
         self.total_consumed = 0
 
+
+class TensorboardPriceCallback(BaseCallback):
+    """ 
+    custom logger to record the price charged by agents
+    """
+    # iterator = 0
+    # offeredPxList = []
+    # acceptedPxList = []
+    # vendorsMadeSaleList = []
+    # quantitySoldList = []
+
+
+    runningAvgMeanPxOffered = 0
+    runningAvgAcceptedVendedPx = 0
+
+    def __init__(self, verbose=0):
+        self.reset()
+        super().__init__(verbose)
+
+    def reset(self):
+        self.iterator = 0
+
+    def _on_rollout_end(self) -> None:
+        self.reset()
+        return super()._on_rollout_end()
+    
+    def _on_step(self) -> bool:
+        self.reset()
+        # self.iterator +=1
+        # agent_arr = self.training_env.get_attr('policy_agents')[0]
+        
+        ### generate a dict like:
+        # [{'agent_num': 0, 'price': 10, 'sold': 0.0, 'reward': 0.0}, 
+        # {'agent_num': 1, 'price': 10, 'sold': 50.0, 'reward': 0.0}]
+        info_arr = self.locals['infos'][0]['n']
+
+
+        pxList = []
+        acceptedPxList = []
+        vendorsMadeSale = 0
+        quantitySold = 0
+        countNoSale = 0
+        countWiSale = 0
+        meanPxOffered = 0
+        agent_sales = 0
+        agent_vend_px = 0
+        agent_reward = 0
+
+        for i, agentInfo in enumerate(info_arr):
+            agent_sales = info_arr[i]['sold']
+            agent_vend_px = info_arr[i]['price']
+            agent_reward = info_arr[i]['reward']
+
+            pxList.append(agent_vend_px)
+            
+            if agent_sales > 0:
+                vendorsMadeSale += 1
+                quantitySold += agent_sales
+                countWiSale += 1
+                acceptedPxList.append(agent_vend_px)
+            else:
+                countNoSale += 1
+            
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
+            
+        meanPxOffered = np.mean(pxList)
+        meanPxAccepted = np.mean(acceptedPxList)
+
+        self.logger.record('a_vending/avgerage_offered_px_value', meanPxOffered)
+        self.logger.record('a_vending/average_accepted_px_value', meanPxAccepted)
+        self.logger.record('a_vending/quantity_sold_count', quantitySold)
+        self.logger.record('a_vending/vendors_made_sale_count', vendorsMadeSale)
+        self.logger.record('a_vending/count_no_sale', countNoSale)
+        self.logger.record('a_vending/count_wi_sale', countWiSale)
+
+        return True
+
 class MultiAgentMacodiacEnvironment(Env):
     """
     Builds a profit maximising agent environment, supporting
@@ -28,36 +108,40 @@ class MultiAgentMacodiacEnvironment(Env):
     state = 0
     environment_timesteps = 0
     environment_starter_timesteps = 150
-    env_wholesale_price = 50        # the price agents pay to purchase goods
+    env_wholesale_price = 5        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
-    num_consumers = 20
-    consumer_total_money_per_turn = 25000
+    num_consumers = 25
+    consumer_total_money_per_turn = 500
     consumers_arr = []
+
 
     def __init__(self, envTimesteps:int, numAgents: int):
         """
         Initialises the class
         """
         self.environment_starter_timesteps = envTimesteps
-        
         self.policy_agents = []
+        self.observation_space = []
+
         for i in range(numAgents):
             self.policy_agents.append(AgentObject())
         
         for i in range(self.num_consumers):
             self.consumers_arr.append(ConsumerObject())
 
-        self.observation_space = []
-        self.agents = [numAgents]
+        
+        # creates an array full of 10's shaped [20,20,20], of length numAgents
+        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 10) )
 
-        arr = np.full(numAgents, 200) # creates an array full of 200's shaped [200,200,200], with numAgents number of element
-
-
-        self.action_space = spaces.MultiDiscrete(arr)
 
         # the observation space is a nAgents by nActions array of float32 numbers between -99-99
-        # also contains the static value for marginal cost and wholesale price
-        self.observation_space = spaces.Box(low=-100,high=100, shape=(numAgents, 3), dtype=np.int32)
+        # also contains the wholesale price
+        # Observations space:
+        # 0: agent's state, after the action has been applied
+        # 1: agent's vending price in this round
+        # 2: agent's count of sold items
+        # 3: the wholesale price in this round
+        self.observation_space = spaces.Box(low=0,high=200, shape=(numAgents, 3), dtype=np.int32)
 
         print(f'obs_space.sample: {self.observation_space.sample()}')
 
@@ -74,14 +158,26 @@ class MultiAgentMacodiacEnvironment(Env):
         print('-- ENV SETTINGS --')
 
 
+    def clear_agent_stats(self, agent):
+        # agent.state = []
+        agent.vendingPrice = 0
+        agent.reward = 0
+        agent.quantitySold = 0
+
     def set_agent_action(self, action, agent, actionSpace):
-        # agent.state is the percentage price diff from the 
-        # wholesale price
-        agent.state = action  - 100
-        agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
-        baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
-        #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
-        agent.vendingPrice = max(baseAgentVendingPrice, 1)
+        # agent.state is the percentage price diff from the wholesale price
+        agent.state = action
+        agent.vendingPrice = self.env_wholesale_price + agent.state
+
+        if agent.vendingPrice == 0:
+            print(f'error')
+            agent.vendingPrice = max(1, agent.vendingPrice)
+
+
+        # agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
+        # baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
+        # #agentMarginalCostAddedVendingPrice = agentBaseVendingPriceAdjust + self.env_agent_marginal_cost
+        # agent.vendingPrice = max(baseAgentVendingPrice, 1)
         # print(f'agent vending price was {agent.vendingPrice}')
 
     def step_agent(self, agent):
@@ -108,19 +204,33 @@ class MultiAgentMacodiacEnvironment(Env):
         info_arr = {'n': []}
         
         for i, agent in enumerate(self.policy_agents):
+            self.clear_agent_stats(agent)
             self.set_agent_action(action_arr[i], agent, self.action_space[i])
 
         for i, consumer in enumerate(self.consumers_arr):
-            self.set_consumer_purchases(self.policy_agents, consumer)
+            lowestPriceAgnetIndex, lowestAgentVendPrice,vendingPrices_arr = self.set_consumer_purchases(self.policy_agents, consumer)
+        
+        # print(f'sold to agent:[{lowestPriceAgnetIndex}] with price [{lowestAgentVendPrice}]. Options were {vendingPrices_arr}. Agent reward is {self.policy_agents[lowestPriceAgnetIndex].reward}')
+
+
+        anyConsumed = False
+        for consumer in self.consumers_arr:
+            if consumer.total_consumed > 0:
+                anyConsumed = True
+                break
+        if anyConsumed == False:
+            print(f'error, no consumption')
 
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
-
-        for agent in self.policy_agents:
             obs_arr.append(self._get_obs(agent))
             reward_arr.append(self._get_reward(agent))
             done_arr.append(self._get_done(agent))
-            info_arr['n'].append(self._get_info(agent))
+            info_arr['n'].append(self._get_info(agent, i))
+
+        # print(info_arr)
+        # for agent in self.policy_agents:
+           
 
         if self.environment_timesteps <= 0:
             isTerminal = True
@@ -134,6 +244,7 @@ class MultiAgentMacodiacEnvironment(Env):
             partialObservationResult = self.get_agent_default_observation_array()
             partialObservationResult[0] = self._get_obs(agent) #The agent's result is present in the 0th element of its result
             partialObservationResult[1] = self._get_final_vend_price(agent) #The agent's result is present in the 0th element of its result
+            partialObservationResult[2] = self._get_quantity_sold(agent) #The agent's result is present in the 0th element of its result
             tmpObsArray.append(partialObservationResult)
 
         concatObsArray = np.array(tmpObsArray).astype(np.int32) 
@@ -147,9 +258,12 @@ class MultiAgentMacodiacEnvironment(Env):
 
         Purchases as many items from the agent as possible
         """
+
         lowestPriceAgnetIndex = 0
+        vendingPrices = []
             
         for i, agent in enumerate(agents_arr):
+            vendingPrices.append(agent.vendingPrice)
             if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex].vendingPrice:
                 lowestPriceAgnetIndex = i
 
@@ -161,14 +275,18 @@ class MultiAgentMacodiacEnvironment(Env):
         tmpAgentRewardPerUnitSold = (lowestAgentVendPrice - self.env_wholesale_price)
         agentReward = tmpAgentRewardPerUnitSold * consumerConsumed
 
-        consumer.money = 0
+        # consumer.money = 0
         consumer.total_consumed += consumerConsumed
         agents_arr[lowestPriceAgnetIndex].reward += agentReward
         agents_arr[lowestPriceAgnetIndex].quantitySold += consumerConsumed
+        return lowestPriceAgnetIndex, lowestAgentVendPrice, vendingPrices
 
 
-
-
+    def _get_quantity_sold(self, agent):
+        """
+            accepts an agent, and returns the number of items it sold
+        """
+        return agent.quantitySold
 
     def _get_final_vend_price(self, agent):
         """
@@ -194,11 +312,11 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         return agent.done
 
-    def _get_info(self, agent):
+    def _get_info(self, agent , i):
         """
             accepts an Agent, and returns its info object
         """
-        return {'price:': agent.vendingPrice, 'sold': agent.quantitySold, 'reward': agent.reward}
+        return {"agent_num": i, "price": agent.vendingPrice, "sold": agent.quantitySold, "reward": agent.reward}
 
 
     def render(self) -> None:
@@ -233,40 +351,9 @@ class MultiAgentMacodiacEnvironment(Env):
         
         return np.array(obs_arr).astype(np.int32)
 
-    def get_consumer_demand_schedule(self):
-        schedule = [
-            [0, 1000],
-            [10, 900],
-            [20, 800],
-            [30, 700],
-            [40, 600],
-            [50, 500],
-            [60, 400],
-            [70, 300],
-            [80, 200],
-            [90, 100],
-            [100, 0]
-        ]
-        return schedule
-    
-    def get_consumer_quantity_demanded_at_price(self, price):
-        dmnd_schedule = self.get_consumer_demand_schedule()
-        roundedPrice = round(price, -1)
-        for i in dmnd_schedule:
-            if i[0] == roundedPrice:
-                return i[1]
-
-        return 0
-      
-        # point_a = dmnd_schedule()[0]
-        # point_b = dmnd_schedule()[len(dmnd_schedule)]
-
-
-        # change_in_x = point_a[0] - point_b[0]
-        # change_in_y = point_a[1] - point_b[1]
-        # gradient = change_in_y / change_in_x
-
-
 
     def get_agent_default_observation_array(self):
-        return [0.0, 0.0, self.env_wholesale_price]
+        """
+        Gets a default observation for this space
+        """
+        return [0.0, 0.0, 0]# , self.env_wholesale_price]
