@@ -26,21 +26,56 @@ class TensorboardPriceCallback(BaseCallback):
     """ 
     custom logger to record the price charged by agents
     """
+    # iterator = 0
+    # offeredPxList = []
+    # acceptedPxList = []
+    # vendorsMadeSaleList = []
+    # quantitySoldList = []
+
+
+    runningAvgMeanPxOffered = 0
+    runningAvgAcceptedVendedPx = 0
+
     def __init__(self, verbose=0):
+        self.reset()
         super().__init__(verbose)
 
+    def reset(self):
+        self.iterator = 0
+        self.offeredPxList = []
+        self.acceptedPxList = []
+        self.vendorsMadeSaleList = []
+        self.quantitySoldList = []
+
+    def _on_rollout_end(self) -> None:
+        self.reset()
+        return super()._on_rollout_end()
+    
     def _on_step(self) -> bool:
+        self.iterator +=1
         agent_arr = self.training_env.get_attr('policy_agents')[0]
+        info_arr = self.locals['infos'][0]['n']
+
+        # print(f'iterator:{self.iterator}. len:{len(info_arr)}')
         pxList = []
+
+        for obj in info_arr:
+            self.offeredPxList.append(obj['price'])
+
         acceptedVendedPx = 0
         quantitySold = 0
         vendorsMadeSale = 0
+        agentsMadeSale = False
         for agent in agent_arr:
             if agent.quantitySold > 0:
                 acceptedVendedPx = agent.vendingPrice
                 quantitySold += agent.quantitySold
                 vendorsMadeSale += 1
+                agentsMadeSale = True
             pxList.append(agent.vendingPrice)
+
+        if agentsMadeSale == False:
+            print(f'error, no agents made a sale')
 
         meanPxOffered = np.mean(pxList)
 
@@ -59,10 +94,10 @@ class MultiAgentMacodiacEnvironment(Env):
     state = 0
     environment_timesteps = 0
     environment_starter_timesteps = 150
-    env_wholesale_price = 50        # the price agents pay to purchase goods
+    env_wholesale_price = 5        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
-    num_consumers = 20
-    consumer_total_money_per_turn = 2500
+    num_consumers = 25
+    consumer_total_money_per_turn = 250
     consumers_arr = []
 
 
@@ -111,8 +146,13 @@ class MultiAgentMacodiacEnvironment(Env):
 
     def set_agent_action(self, action, agent, actionSpace):
         # agent.state is the percentage price diff from the wholesale price
-        agent.state = action * 10
+        agent.state = action
         agent.vendingPrice = self.env_wholesale_price + agent.state
+
+        if agent.vendingPrice == 0:
+            print(f'error')
+            agent.vendingPrice = max(1, agent.vendingPrice)
+
 
         # agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
         # baseAgentVendingPrice = self.env_wholesale_price + agentBaseVendingPriceAdjust
@@ -239,7 +279,7 @@ class MultiAgentMacodiacEnvironment(Env):
         """
             accepts an Agent, and returns its info object
         """
-        return {'price:': agent.vendingPrice, 'sold': agent.quantitySold, 'reward': agent.reward}
+        return {"price": agent.vendingPrice, "sold": agent.quantitySold, "reward": agent.reward}
 
 
     def render(self) -> None:
