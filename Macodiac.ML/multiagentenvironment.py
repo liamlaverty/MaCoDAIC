@@ -42,47 +42,54 @@ class TensorboardPriceCallback(BaseCallback):
 
     def reset(self):
         self.iterator = 0
-        self.offeredPxList = []
-        self.acceptedPxList = []
-        self.vendorsMadeSaleList = []
-        self.quantitySoldList = []
 
     def _on_rollout_end(self) -> None:
         self.reset()
         return super()._on_rollout_end()
     
     def _on_step(self) -> bool:
-        self.iterator +=1
-        agent_arr = self.training_env.get_attr('policy_agents')[0]
+        # self.iterator +=1
+        # agent_arr = self.training_env.get_attr('policy_agents')[0]
+        
+        ### generate a dict like:
+        # [{'agent_num': 0, 'price': 10, 'sold': 0.0, 'reward': 0.0}, 
+        # {'agent_num': 1, 'price': 10, 'sold': 50.0, 'reward': 0.0}]
         info_arr = self.locals['infos'][0]['n']
 
-        # print(f'iterator:{self.iterator}. len:{len(info_arr)}')
+
         pxList = []
-
-        for obj in info_arr:
-            self.offeredPxList.append(obj['price'])
-
-        acceptedVendedPx = 0
-        quantitySold = 0
         vendorsMadeSale = 0
-        agentsMadeSale = False
-        for agent in agent_arr:
-            if agent.quantitySold > 0:
-                acceptedVendedPx = agent.vendingPrice
-                quantitySold += agent.quantitySold
+        quantitySold = 0
+        countNoSale = 0
+        countWiSale = 0
+        acceptedVendedPx = 0
+        meanPxOffered = 0
+
+        for agentInfo in info_arr:
+            agent_sales = agentInfo['sold']
+            agent_vend_px = agentInfo['price']
+            pxList.append(agent_vend_px)
+            
+            if agent_sales > 0:
                 vendorsMadeSale += 1
-                agentsMadeSale = True
-            pxList.append(agent.vendingPrice)
-
-        if agentsMadeSale == False:
-            print(f'error, no agents made a sale')
-
+                quantitySold += agent_sales
+                countWiSale += 1
+                acceptedVendedPx = agent_vend_px
+            else:
+                countNoSale += 1
+            
+            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
+            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
+            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/individual_reward',  agentInfo['reward'])
+            
         meanPxOffered = np.mean(pxList)
 
         self.logger.record('vending/avgerage_offered_px_value', meanPxOffered)
         self.logger.record('vending/actual_accepted_px_value', acceptedVendedPx)
         self.logger.record('vending/quantity_sold_count', quantitySold)
         self.logger.record('vending/vendors_made_sale_count', vendorsMadeSale)
+        self.logger.record('vending/count_no_sale', countNoSale)
+        self.logger.record('vending/count_wi_sale', countWiSale)
 
         return True
 
@@ -188,15 +195,24 @@ class MultiAgentMacodiacEnvironment(Env):
 
         for i, consumer in enumerate(self.consumers_arr):
             self.set_consumer_purchases(self.policy_agents, consumer)
+        
+        anyConsumed = False
+        for consumer in self.consumers_arr:
+            if consumer.total_consumed > 0:
+                anyConsumed = True
+                break
+        if anyConsumed == False:
+            print(f'error, no consumption')
 
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
-
-        for agent in self.policy_agents:
             obs_arr.append(self._get_obs(agent))
             reward_arr.append(self._get_reward(agent))
             done_arr.append(self._get_done(agent))
-            info_arr['n'].append(self._get_info(agent))
+            info_arr['n'].append(self._get_info(agent, i))
+
+        # for agent in self.policy_agents:
+           
 
         if self.environment_timesteps <= 0:
             isTerminal = True
@@ -275,11 +291,11 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         return agent.done
 
-    def _get_info(self, agent):
+    def _get_info(self, agent , i):
         """
             accepts an Agent, and returns its info object
         """
-        return {"price": agent.vendingPrice, "sold": agent.quantitySold, "reward": agent.reward}
+        return {"agent_num": i, "price": agent.vendingPrice, "sold": agent.quantitySold, "reward": agent.reward}
 
 
     def render(self) -> None:
