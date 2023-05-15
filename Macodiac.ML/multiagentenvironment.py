@@ -65,9 +65,11 @@ class TensorboardPriceCallback(BaseCallback):
         acceptedVendedPx = 0
         meanPxOffered = 0
 
-        for agentInfo in info_arr:
-            agent_sales = agentInfo['sold']
-            agent_vend_px = agentInfo['price']
+        for i, agentInfo in enumerate(info_arr):
+            agent_sales = info_arr[i]['sold']
+            agent_vend_px = info_arr[i]['price']
+            agent_reward = info_arr[i]['reward']
+
             pxList.append(agent_vend_px)
             
             if agent_sales > 0:
@@ -80,7 +82,7 @@ class TensorboardPriceCallback(BaseCallback):
             
             self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
             self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
-            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/individual_reward',  agentInfo['reward'])
+            self.logger.record(f'vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
             
         meanPxOffered = np.mean(pxList)
 
@@ -104,7 +106,7 @@ class MultiAgentMacodiacEnvironment(Env):
     env_wholesale_price = 5        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
     num_consumers = 25
-    consumer_total_money_per_turn = 250
+    consumer_total_money_per_turn = 500
     consumers_arr = []
 
 
@@ -194,8 +196,11 @@ class MultiAgentMacodiacEnvironment(Env):
             self.set_agent_action(action_arr[i], agent, self.action_space[i])
 
         for i, consumer in enumerate(self.consumers_arr):
-            self.set_consumer_purchases(self.policy_agents, consumer)
+            lowestPriceAgnetIndex, lowestAgentVendPrice,vendingPrices_arr = self.set_consumer_purchases(self.policy_agents, consumer)
         
+        print(f'sold to agent:[{lowestPriceAgnetIndex}] with price [{lowestAgentVendPrice}]. Options were {vendingPrices_arr}.')# Agent reward is {self.policy_agents[lowestPriceAgnetIndex].reward}')
+
+
         anyConsumed = False
         for consumer in self.consumers_arr:
             if consumer.total_consumed > 0:
@@ -240,9 +245,12 @@ class MultiAgentMacodiacEnvironment(Env):
 
         Purchases as many items from the agent as possible
         """
+
         lowestPriceAgnetIndex = 0
+        vendingPrices = []
             
         for i, agent in enumerate(agents_arr):
+            vendingPrices.append(agent.vendingPrice)
             if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex].vendingPrice:
                 lowestPriceAgnetIndex = i
 
@@ -254,11 +262,11 @@ class MultiAgentMacodiacEnvironment(Env):
         tmpAgentRewardPerUnitSold = (lowestAgentVendPrice - self.env_wholesale_price)
         agentReward = tmpAgentRewardPerUnitSold * consumerConsumed
 
-        consumer.money = 0
+        # consumer.money = 0
         consumer.total_consumed += consumerConsumed
         agents_arr[lowestPriceAgnetIndex].reward += agentReward
         agents_arr[lowestPriceAgnetIndex].quantitySold += consumerConsumed
-
+        return lowestPriceAgnetIndex, lowestAgentVendPrice, vendingPrices
 
 
     def _get_quantity_sold(self, agent):
