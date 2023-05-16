@@ -208,13 +208,13 @@ class MultiAgentMacodiacEnvironment(Env):
             self.alt_set_consumer_purchases(self.policy_agents, consumer)
     
 
-        anyConsumed = False
-        for consumer in self.consumers_arr:
-            if consumer.total_consumed > 0:
-                anyConsumed = True
-                break
-        if anyConsumed == False:
-            print(f'error, no consumption')
+        # anyConsumed = False
+        # for consumer in self.consumers_arr:
+        #     if consumer.total_consumed > 0:
+        #         anyConsumed = True
+        #         break
+        # if anyConsumed == False:
+        #     print(f'error, no consumption')
 
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
@@ -275,16 +275,23 @@ class MultiAgentMacodiacEnvironment(Env):
         while consumer.money > 0:
             # loop through each vendor, purchase one item from them
             for agentIndex in lowestPriceAgentIndexList:
-                agentToPurchaseFrom = agents_arr[agentIndex]
-                
-                if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
-                    raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
+                if consumer.money > 0:
+                    agentToPurchaseFrom = agents_arr[agentIndex]
+                    
+                    if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
+                        raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
 
-                if consumer.money > agentToPurchaseFrom.vendingPrice:
-                    self.consumer_purchase_from_agent(consumer, agentToPurchaseFrom)
-                else:
-                    consumer.money = 0
-                    break
+                    if consumer.money > agentToPurchaseFrom.vendingPrice:
+                        if consumer.money < agentToPurchaseFrom.vendingPrice:
+                            raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agentToPurchaseFrom.vendingPrice}]')
+                        consumer.money -= agentToPurchaseFrom.vendingPrice
+                        consumer.total_consumed += 1
+                        agentToPurchaseFrom.quantitySold += 1
+                        agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price)
+                    else:
+                        # print(f'consumer money was {consumer.money}, setting to 0')
+                        consumer.money = 0
+                        break
         
         # if vendingPrices[0] == vendingPrices[1]:
         #     print(f'hit condition: [{vendingPrices[0]},{vendingPrices[1]}]')
@@ -294,13 +301,13 @@ class MultiAgentMacodiacEnvironment(Env):
 
 
     
-    def consumer_purchase_from_agent(self, consumer, agent):
-        if consumer.money < agent.vendingPrice:
-            raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agent.vendingPrice}]')
-        consumer.money -= agent.vendingPrice
-        consumer.total_consumed += 1
-        agent.quantitySold += 1
-        agent.reward += (agent.vendingPrice - self.env_wholesale_price)
+    # def consumer_purchase_from_agent(self, consumer, agentToPurchaseFrom):
+    #     if consumer.money < agentToPurchaseFrom.vendingPrice:
+    #         raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agentToPurchaseFrom.vendingPrice}]')
+    #     consumer.money -= agentToPurchaseFrom.vendingPrice
+    #     consumer.total_consumed += 1
+    #     agentToPurchaseFrom.quantitySold += 1
+    #     agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price)
         
 
 
