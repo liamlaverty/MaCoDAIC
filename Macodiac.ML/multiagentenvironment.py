@@ -125,7 +125,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
         
         # creates an array full of 10's shaped [20,20,20], of length numAgents
-        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 10) )
+        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 15) )
 
 
         # the observation space is a nAgents by nActions array of float32 numbers between -99-99
@@ -162,7 +162,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
     def set_agent_action(self, action, agent, actionSpace):
         # agent.state is the percentage price diff from the wholesale price
-        agent.state = (action * 1.5)
+        agent.state = action
         agent.vendingPrice = self.env_wholesale_price + agent.state
 
         if agent.vendingPrice == 0:
