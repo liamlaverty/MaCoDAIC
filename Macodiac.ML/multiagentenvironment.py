@@ -162,7 +162,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
     def set_agent_action(self, action, agent, actionSpace):
         # agent.state is the percentage price diff from the wholesale price
-        agent.state = action
+        agent.state = (action * 1.5)
         agent.vendingPrice = self.env_wholesale_price + agent.state
 
         if agent.vendingPrice == 0:
