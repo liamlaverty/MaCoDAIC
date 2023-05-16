@@ -5,34 +5,17 @@ from multiagentenvironment import TensorboardPriceCallback
 from multiagentenvironment import MultiAgentMacodiacEnvironment
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.env_checker import check_env
-
 import numpy as np
-
-
-
 from stable_baselines3 import PPO
 
 
 class MultiagentMain():
     isRunning = False
 
-    def __init__(self):
+    def __init__(self, mode):
         """
         init the class
         """
-        filePath = os.path.join('Macodiac.ML', 'training_multiagent','results')
-        self.log_path =  os.path.join(filePath,'Logs')
-        self.save_path =  os.path.join(filePath,'saved_models', 'model')
-        self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
-        self.numTrainingIterations = 5_000_000
-        self.numEpisodes = 20
-        self.envTimesteps = 25
-        self.numAgents = 1
-
-        self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
-        check_env(self.env)
-
-
 
         # set to true if you want to load an existing model
         # model loading happens first, then training
@@ -48,6 +31,38 @@ class MultiagentMain():
         # rather than the model version
         self.__MODE_RANDOMSAMPLE__ = False
 
+        self.mode = mode
+
+
+        filePath = os.path.join('Macodiac.ML', 'training_multiagent','results')
+        self.log_path =  os.path.join(filePath,'Logs')
+        self.save_path =  os.path.join(filePath,'saved_models', self.mode)
+        self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
+
+        self.numEpisodes = 20
+        self.envTimesteps = 25
+
+        if self.mode == 'MONOPOLY':
+            self.numAgents = 1
+            self.numTrainingIterations = 3_000_000
+        elif self.mode == 'DUOPOLY':
+            self.numAgents = 2
+            self.numTrainingIterations = 3_000_000
+        elif self.mode == 'OLIGOPOLY':
+            self.numAgents = 5
+            self.numTrainingIterations = 5_000_000  
+        elif self.mode == 'PERFECT_COMP':
+            self.numAgents = 10
+            self.numTrainingIterations = 15_000_000
+        else:
+            raise ValueError(f'self.mode [{self.mode}] was not in mode options list [{self.__MODE_OPTIONS__}]')
+        
+        if self.numAgents == 0 or self.numTrainingIterations == 0:
+            raise ValueError('both numAgents and numTrainingItterations must be above 0')
+
+        self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
+        check_env(self.env)
+        
 
     def Run(self):
         """
@@ -64,7 +79,9 @@ class MultiagentMain():
         if self.__MODE_TRAINMODEL__: 
 
             model = self.train_model(model,
-                                     self.numTrainingIterations, self.save_path_intermittent)
+                                     self.numTrainingIterations, 
+                                     self.save_path_intermittent,
+                                     self.mode)
             self.save_model(model, self.save_path)
 
         if not self.__MODE_RANDOMSAMPLE__:
@@ -160,7 +177,7 @@ class MultiagentMain():
         return model
 
 
-    def train_model(self, model, numTimesteps: int, savePath:str):
+    def train_model(self, model, numTimesteps: int, savePath:str, saveName: str):
         """
         Trains a model with the number of iterations in 
         numtimesteps. Creates a n intermediate save every 1m iterations
@@ -173,13 +190,15 @@ class MultiagentMain():
         
         if numTimesteps < saveEveryNSteps:
             model.learn(total_timesteps=numTimesteps,
-                        callback=TensorboardPriceCallback())
+                        callback=TensorboardPriceCallback(), 
+                        tb_log_name=saveName)
 
         else:
             rangeUpper = int(numTimesteps / saveEveryNSteps)
             for i in range(1,rangeUpper+1):
                 model.learn(total_timesteps=saveEveryNSteps,
-                            callback=TensorboardPriceCallback())
+                            callback=TensorboardPriceCallback(),
+                            tb_log_name=saveName)
                 model.save(os.path.join(savePath, f'interim-{i}'))
 
         return model
@@ -219,5 +238,10 @@ class MultiagentMain():
         return model
 
 
-main = MultiagentMain()
-main.Run()
+
+
+
+__MODE_OPTIONS__ = ['MONOPOLY', 'DUOPOLY', 'OLIGOPOLY', 'PERFECT_COMP']
+for mode in __MODE_OPTIONS__:
+    main = MultiagentMain(mode)
+    main.Run()
