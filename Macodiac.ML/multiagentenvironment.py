@@ -11,9 +11,15 @@ from stable_baselines3.common.callbacks import BaseCallback
 class AgentObject:
     def __init__(self):
         self.state = []
+        self.reset_values()
+    
+    def reset_values(self):
         self.vendingPrice = 0
         self.reward = 0
         self.quantitySold = 0
+        self.vendCost = 5
+        self.totalVendingCost = 0
+        self.vendCostTrend = 'down'
 
 class ConsumerObject:
     def __init__(self):
@@ -54,6 +60,7 @@ class TensorboardPriceCallback(BaseCallback):
 
         pxList = []
         acceptedPxList = []
+        vendCostList = []
         vendorsMadeSale = 0
         quantitySold = 0
         countNoSale = 0
@@ -63,11 +70,18 @@ class TensorboardPriceCallback(BaseCallback):
         agent_vend_px = 0
         agent_reward = 0
         money_sales = 0
-
+        agent_sales_in_money = 0
+        agent_total_vend_cost = 0
+        agent_final_vend_cost = 0
+        meanPxAccepted = 0
+        meanVendCost = 0
+         
         for i, agentInfo in enumerate(info_arr):
             agent_sales = info_arr[i]['sold']
             agent_vend_px = info_arr[i]['price']
             agent_reward = info_arr[i]['reward']
+            agent_final_vend_cost = info_arr[i]['vendCost']
+            agent_total_vend_cost = info_arr[i]['totalVendingCost']
             agent_sales_in_money = agent_sales * agent_vend_px
             money_sales += agent_sales_in_money
 
@@ -78,19 +92,28 @@ class TensorboardPriceCallback(BaseCallback):
                 quantitySold += agent_sales
                 countWiSale += 1
                 acceptedPxList.append(agent_vend_px)
+                vendCostList.append(agent_final_vend_cost)
             else:
                 countNoSale += 1
             
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_value',  agent_sales_in_money)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/final_vend_cost',  agent_final_vend_cost)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/total_vend_cost',  agent_total_vend_cost)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
             
-        meanPxOffered = np.mean(pxList)
-        meanPxAccepted = np.mean(acceptedPxList)
+        if len(pxList) > 0:
+            meanPxOffered = np.mean(pxList)
+        if len(acceptedPxList) > 0:
+            meanPxAccepted = np.mean(acceptedPxList)
+        if len(vendCostList) > 0:
+            meanVendCost = np.mean(vendCostList)
+
 
         self.logger.record('a_vending/avgerage_offered_px_value', meanPxOffered)
         self.logger.record('a_vending/average_accepted_px_value', meanPxAccepted)
+        self.logger.record('a_vending/average_final_vend_cost', meanVendCost)
         self.logger.record('a_vending/quantity_sold_count', quantitySold)
         self.logger.record('a_vending/total_value_sold', money_sales)
         self.logger.record('a_vending/vendors_made_sale_count', vendorsMadeSale)
@@ -110,7 +133,7 @@ class MultiAgentMacodiacEnvironment(Env):
     env_wholesale_price = 8        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
     num_consumers = 25
-    consumer_total_money_per_turn = 500
+    consumer_total_money_per_turn = 475
     consumers_arr = []
 
 
@@ -166,9 +189,9 @@ class MultiAgentMacodiacEnvironment(Env):
         consumer.money = self.consumerMoneyEach
 
     def clear_agent_stats(self, agent):
-        agent.vendingPrice = 0
-        agent.reward = 0
-        agent.quantitySold = 0
+        agent.reset_values()
+        
+
 
     def set_agent_action(self, action, agent):
         # agent.state is the percentage price diff from the wholesale price
@@ -285,7 +308,17 @@ class MultiAgentMacodiacEnvironment(Env):
                         # print(f'consumer money: {consumer.money}')
                         consumer.total_consumed += 1
                         agentToPurchaseFrom.quantitySold += 1
-                        agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price)
+
+                        # Marginal cost trends down towards 1, then increases upwards
+                        if agentToPurchaseFrom.vendCostTrend == 'up':
+                            agentToPurchaseFrom.vendCost += 0.66
+                        elif agentToPurchaseFrom.vendCostTrend == 'down':
+                            agentToPurchaseFrom.vendCost -= 0.66
+                            if agentToPurchaseFrom.vendCost < 1:
+                                agentToPurchaseFrom.vendCostTrend = 'up'
+                        
+                        agentToPurchaseFrom.totalVendingCost += agentToPurchaseFrom.vendCost 
+                        agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price - agentToPurchaseFrom.vendCost)
                     else:
                         # print(f'consumer money was {consumer.money}, setting to 0')
                         consumer.money = 0
@@ -357,7 +390,15 @@ class MultiAgentMacodiacEnvironment(Env):
         """
             accepts an Agent, and returns its info object
         """
-        return {"agent_num": i, "price": agent.vendingPrice, "sold": agent.quantitySold, "reward": agent.reward}
+        return {
+            "agent_num": i,
+            "price": agent.vendingPrice,
+            "sold": agent.quantitySold,
+            "reward": agent.reward,
+            "vendCost": agent.vendCost,
+            "totalVendingCost": agent.totalVendingCost
+            
+        }
 
 
     def render(self) -> None:
@@ -383,6 +424,8 @@ class MultiAgentMacodiacEnvironment(Env):
             self.policy_agents[i].done = False
             self.policy_agents[i].vendingPrice = 0
             self.policy_agents[i].quantitySold = 0
+            self.policy_agents[i].vendCost = 1
+
         
         self.consumerMoneyEach = self.consumer_total_money_per_turn / self.num_consumers
         # for i in range(len(self.consumers_arr)):
