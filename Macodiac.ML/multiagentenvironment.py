@@ -62,11 +62,14 @@ class TensorboardPriceCallback(BaseCallback):
         agent_sales = 0
         agent_vend_px = 0
         agent_reward = 0
+        money_sales = 0
 
         for i, agentInfo in enumerate(info_arr):
             agent_sales = info_arr[i]['sold']
             agent_vend_px = info_arr[i]['price']
             agent_reward = info_arr[i]['reward']
+            agent_sales_in_money = agent_sales * agent_vend_px
+            money_sales += agent_sales_in_money
 
             pxList.append(agent_vend_px)
             
@@ -80,6 +83,7 @@ class TensorboardPriceCallback(BaseCallback):
             
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/offered_px',   agent_vend_px)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_complete',  agent_sales)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_value',  agent_sales_in_money)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
             
         meanPxOffered = np.mean(pxList)
@@ -88,6 +92,7 @@ class TensorboardPriceCallback(BaseCallback):
         self.logger.record('a_vending/avgerage_offered_px_value', meanPxOffered)
         self.logger.record('a_vending/average_accepted_px_value', meanPxAccepted)
         self.logger.record('a_vending/quantity_sold_count', quantitySold)
+        self.logger.record('a_vending/total_value_sold', money_sales)
         self.logger.record('a_vending/vendors_made_sale_count', vendorsMadeSale)
         self.logger.record('a_vending/count_no_sale', countNoSale)
         self.logger.record('a_vending/count_wi_sale', countWiSale)
