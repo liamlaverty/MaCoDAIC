@@ -115,6 +115,7 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         self.environment_starter_timesteps = envTimesteps
         self.policy_agents = []
+        self.consumers_arr = []
         self.observation_space = []
 
         for i in range(numAgents):
@@ -151,16 +152,20 @@ class MultiAgentMacodiacEnvironment(Env):
         print(self.environment_timesteps)
         print('-- ENV SETTINGS --')
 
+    def peek_env_consumer_money(self):
+        return self.consumer_total_money_per_turn
+    def peek_env_consumer_money_each(self):
+        return self.consumerMoneyEach
+
     def clear_consumer_stats(self, consumer):
         consumer.money = self.consumerMoneyEach
 
     def clear_agent_stats(self, agent):
-        # agent.state = []
         agent.vendingPrice = 0
         agent.reward = 0
         agent.quantitySold = 0
 
-    def set_agent_action(self, action, agent, actionSpace):
+    def set_agent_action(self, action, agent):
         # agent.state is the percentage price diff from the wholesale price
         agent.state = action
         agent.vendingPrice = self.env_wholesale_price + agent.state
@@ -201,31 +206,18 @@ class MultiAgentMacodiacEnvironment(Env):
         
         for i, agent in enumerate(self.policy_agents):
             self.clear_agent_stats(agent)
-            self.set_agent_action(action_arr[i], agent, self.action_space[i])
+            self.set_agent_action(action_arr[i], agent)
 
         for i, consumer in enumerate(self.consumers_arr):
             self.clear_consumer_stats(consumer)
             self.alt_set_consumer_purchases(self.policy_agents, consumer)
-    
-
-        # anyConsumed = False
-        # for consumer in self.consumers_arr:
-        #     if consumer.total_consumed > 0:
-        #         anyConsumed = True
-        #         break
-        # if anyConsumed == False:
-        #     print(f'error, no consumption')
 
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
             obs_arr.append(self._get_obs(agent))
             reward_arr.append(self._get_reward(agent))
             done_arr.append(self._get_done(agent))
-            info_arr['n'].append(self._get_info(agent, i))
-
-        # print(info_arr)
-        # for agent in self.policy_agents:
-           
+            info_arr['n'].append(self._get_info(agent, i))        
 
         if self.environment_timesteps <= 0:
             isTerminal = True
@@ -281,10 +273,11 @@ class MultiAgentMacodiacEnvironment(Env):
                     if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
                         raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
 
-                    if consumer.money > agentToPurchaseFrom.vendingPrice:
+                    if consumer.money >= agentToPurchaseFrom.vendingPrice:
                         if consumer.money < agentToPurchaseFrom.vendingPrice:
                             raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agentToPurchaseFrom.vendingPrice}]')
                         consumer.money -= agentToPurchaseFrom.vendingPrice
+                        # print(f'consumer money: {consumer.money}')
                         consumer.total_consumed += 1
                         agentToPurchaseFrom.quantitySold += 1
                         agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price)
@@ -292,25 +285,6 @@ class MultiAgentMacodiacEnvironment(Env):
                         # print(f'consumer money was {consumer.money}, setting to 0')
                         consumer.money = 0
                         break
-        
-        # if vendingPrices[0] == vendingPrices[1]:
-        #     print(f'hit condition: [{vendingPrices[0]},{vendingPrices[1]}]')
-        # for i, agent in enumerate(agents_arr):
-        #     print(f'agentPrices:{agent.vendingPrice} | agentSold: {agent.quantitySold}')
-            
-
-
-    
-    # def consumer_purchase_from_agent(self, consumer, agentToPurchaseFrom):
-    #     if consumer.money < agentToPurchaseFrom.vendingPrice:
-    #         raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agentToPurchaseFrom.vendingPrice}]')
-    #     consumer.money -= agentToPurchaseFrom.vendingPrice
-    #     consumer.total_consumed += 1
-    #     agentToPurchaseFrom.quantitySold += 1
-    #     agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price)
-        
-
-
 
 
     def set_consumer_purchases(self, agents_arr, consumer):
@@ -406,8 +380,8 @@ class MultiAgentMacodiacEnvironment(Env):
             self.policy_agents[i].quantitySold = 0
         
         self.consumerMoneyEach = self.consumer_total_money_per_turn / self.num_consumers
-        for i in range(len(self.consumers_arr)):
-            self.clear_consumer_stats(self.consumers_arr[i])
+        # for i in range(len(self.consumers_arr)):
+            # self.clear_consumer_stats(self.consumers_arr[i])
             # self.consumers_arr[i].money = consumerMoneyEach
 
         self.environment_timesteps = self.environment_starter_timesteps

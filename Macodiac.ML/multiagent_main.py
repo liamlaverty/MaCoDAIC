@@ -25,11 +25,11 @@ class MultiagentMain():
         self.__MODE_LOADMODEL__ = False
 
         # set to true if you want to train and then save the model
-        self.__MODE_TRAINMODEL__ = True
+        self.__MODE_TRAINMODEL__ = False
 
         # set to true to use the randomsample mode for testing, 
         # rather than the model version
-        self.__MODE_RANDOMSAMPLE__ = False
+        self.__MODE_RANDOMSAMPLE__ = True
 
         self.mode = mode
 
@@ -44,7 +44,7 @@ class MultiagentMain():
 
         if self.mode == 'MONOPOLY':
             self.numAgents = 1
-            self.numTrainingIterations = 3_000_000
+            self.numTrainingIterations = 2_000_000
         elif self.mode == 'DUOPOLY':
             self.numAgents = 2
             self.numTrainingIterations = 3_000_000
@@ -103,8 +103,12 @@ class MultiagentMain():
             while not done:
                 #env.render()
                 iterator+=1
-                print(f'iterator:{iterator}')
-                action_arr = env.action_space.sample()
+                #print(f'iterator:{iterator}')
+                # action_arr = env.action_space.sample()
+
+                action_arr = []
+                for i in range(self.numAgents):
+                    action_arr.append(11)
 
                 print(f'action for agents:\t{action_arr}')
                 
@@ -112,9 +116,25 @@ class MultiagentMain():
                 
                 agent_scores.append(reward)
 
-                print(f'rewards for agents:\t{reward}')
-                print(f'obs for agents:\t{obs_arr}')
+                # print(f'rewards for agents:\t{reward}')
+                # print(f'obs for agents:\t{obs_arr}')
+
+                info_arr = info_arr['n']
                 print(f'px for agents:\t{info_arr}')
+                quantitySold = 0
+                moneySales = 0
+                for i, agentInfo in enumerate(info_arr):
+                    agent_sales = info_arr[i]['sold']
+                    agent_price = info_arr[i]['price']
+                    agent_sales_in_money = agent_sales * agent_price
+                    moneySales += agent_sales_in_money
+                    quantitySold += agent_sales
+                    
+                print(f'a_vending/quantity_sold_count: {quantitySold} at cost [{moneySales}]/[{env.peek_env_consumer_money()}. Consumer money per turn:{env.peek_env_consumer_money_each()}]')
+                if moneySales > env.peek_env_consumer_money():
+                    print(f'Money sales of [{moneySales}]/[{env.peek_env_consumer_money()}] were too high. Consumer money per turn:{env.peek_env_consumer_money_each()}')
+                    return # raise Exception(f'Money sales of [{moneySales}]/[{env.peek_env_consumer_money()}] were too high. Consumer money per turn:{env.peek_env_consumer_money_each()}')
+
 
                 if done:
                     print(f'is done')
