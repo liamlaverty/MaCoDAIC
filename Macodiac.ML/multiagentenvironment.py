@@ -165,7 +165,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
         
         # creates an array full of 15's shaped [15,15,15], of length numAgents muliplied by 2 (two actions per agent)
-        self.action_space = spaces.MultiDiscrete(np.full((numAgents * 2), 15) )
+        self.action_space = spaces.MultiDiscrete(np.full((numAgents * 2), 30) )
 
 
         # the observation space is a nAgents by nActions array of float32 numbers between -99-99
@@ -303,7 +303,7 @@ class MultiAgentMacodiacEnvironment(Env):
        
         # gather all of the lowest price agents
         for i, agent in enumerate(agents_arr):
-            if agent.vendingPrice == lowestAbsolutePrice and agent.quantitySold < agent.willingToSellMaximum:
+            if agent.vendingPrice == lowestAbsolutePrice and agent.willingToSellMaximum > agent.quantitySold:
                 lowestPriceAgentIndexList.append(i)
 
         shuffle(lowestPriceAgentIndexList)

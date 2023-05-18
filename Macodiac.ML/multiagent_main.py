@@ -261,7 +261,7 @@ class MultiagentMain():
 
 
 
-__MODE_OPTIONS__ = ['MONOPOLY', 'OLIGOPOLY',  'DUOPOLY', 'PERFECT_COMP']
+__MODE_OPTIONS__ = ['MONOPOLY','DUOPOLY',  'OLIGOPOLY',  'PERFECT_COMP']
 for mode in __MODE_OPTIONS__:
     main = MultiagentMain(mode)
     main.Run()
