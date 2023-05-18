@@ -8,6 +8,8 @@ training_multiagent/results/saved_models/*
 !training_multiagent/results/saved_models/.keep
 training_multiagent_16may/results/logs/*
 training_multiagent_16may/results/saved_models/*
+training_multiagent/results_quantity_setter/logs/*
+training_multiagent/results_quantity_setter/saved_models/*
 
 
 # Byte-compiled / optimized / DLL files

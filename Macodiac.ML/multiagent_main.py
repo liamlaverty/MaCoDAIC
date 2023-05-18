@@ -34,7 +34,7 @@ class MultiagentMain():
         self.mode = mode
 
 
-        filePath = os.path.join('Macodiac.ML', 'training_multiagent','results')
+        filePath = os.path.join('Macodiac.ML', 'training_multiagent','results_quantity_setter')
         self.log_path =  os.path.join(filePath,'Logs')
         self.save_path =  os.path.join(filePath,'saved_models', self.mode)
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
@@ -44,16 +44,16 @@ class MultiagentMain():
 
         if self.mode == 'MONOPOLY':
             self.numAgents = 1
-            self.numTrainingIterations = 2_000_000
+            self.numTrainingIterations = 20_000
         elif self.mode == 'DUOPOLY':
             self.numAgents = 2
-            self.numTrainingIterations = 3_000_000
+            self.numTrainingIterations = 30_000
         elif self.mode == 'OLIGOPOLY':
             self.numAgents = 5
-            self.numTrainingIterations = 5_000_000  
+            self.numTrainingIterations = 50_000  
         elif self.mode == 'PERFECT_COMP':
             self.numAgents = 10
-            self.numTrainingIterations = 15_000_000
+            self.numTrainingIterations = 150_000
         else:
             raise ValueError(f'self.mode [{self.mode}] was not in mode options list [{self.__MODE_OPTIONS__}]')
         
@@ -104,11 +104,11 @@ class MultiagentMain():
                 #env.render()
                 iterator+=1
                 #print(f'iterator:{iterator}')
-                # action_arr = env.action_space.sample()
+                action_arr = env.action_space.sample()
 
-                action_arr = []
-                for i in range(self.numAgents):
-                    action_arr.append(11)
+                # action_arr = []
+                # for i in range(self.numAgents * 2):
+                #     action_arr.append(11)
 
                 print(f'action for agents:\t{action_arr}')
                 
@@ -261,7 +261,7 @@ class MultiagentMain():
 
 
 
-__MODE_OPTIONS__ = ['MONOPOLY', 'DUOPOLY', 'OLIGOPOLY', 'PERFECT_COMP']
+__MODE_OPTIONS__ = ['MONOPOLY', 'OLIGOPOLY',  'DUOPOLY', 'PERFECT_COMP']
 for mode in __MODE_OPTIONS__:
     main = MultiagentMain(mode)
     main.Run()

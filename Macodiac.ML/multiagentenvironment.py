@@ -17,6 +17,7 @@ class AgentObject:
         self.vendingPrice = 0
         self.reward = 0
         self.quantitySold = 0
+        self.willingToSellMaximum = 0
         self.vendCost = 5
         self.totalVendingCost = 0
         self.vendCostTrend = 'down'
@@ -61,6 +62,7 @@ class TensorboardPriceCallback(BaseCallback):
         pxList = []
         acceptedPxList = []
         vendCostList = []
+        quantityOfferedList = []
         vendorsMadeSale = 0
         quantitySold = 0
         countNoSale = 0
@@ -73,8 +75,10 @@ class TensorboardPriceCallback(BaseCallback):
         agent_sales_in_money = 0
         agent_total_vend_cost = 0
         agent_final_vend_cost = 0
+        agent_quantity_offered = 0
         meanPxAccepted = 0
         meanVendCost = 0
+        meanquantityOffered = 0
          
         for i, agentInfo in enumerate(info_arr):
             agent_sales = info_arr[i]['sold']
@@ -82,6 +86,7 @@ class TensorboardPriceCallback(BaseCallback):
             agent_reward = info_arr[i]['reward']
             agent_final_vend_cost = info_arr[i]['vendCost']
             agent_total_vend_cost = info_arr[i]['totalVendingCost']
+            agent_quantity_offered = info_arr[i]['totalQuantityOffered']
             agent_sales_in_money = agent_sales * agent_vend_px
             money_sales += agent_sales_in_money
 
@@ -93,6 +98,7 @@ class TensorboardPriceCallback(BaseCallback):
                 countWiSale += 1
                 acceptedPxList.append(agent_vend_px)
                 vendCostList.append(agent_final_vend_cost)
+                quantityOfferedList.append(agent_quantity_offered)
             else:
                 countNoSale += 1
             
@@ -101,6 +107,7 @@ class TensorboardPriceCallback(BaseCallback):
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/sales_value',  agent_sales_in_money)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/final_vend_cost',  agent_final_vend_cost)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/total_vend_cost',  agent_total_vend_cost)
+            self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/quantity_offered',  agent_quantity_offered)
             self.logger.record(f'a_vending_agent_{agentInfo["agent_num"]}/individual_reward',  agent_reward)
             
         if len(pxList) > 0:
@@ -109,11 +116,15 @@ class TensorboardPriceCallback(BaseCallback):
             meanPxAccepted = np.mean(acceptedPxList)
         if len(vendCostList) > 0:
             meanVendCost = np.mean(vendCostList)
+        if len(quantityOfferedList) > 0:
+            meanquantityOffered = np.mean(quantityOfferedList)
 
 
         self.logger.record('a_vending/avgerage_offered_px_value', meanPxOffered)
         self.logger.record('a_vending/average_accepted_px_value', meanPxAccepted)
         self.logger.record('a_vending/average_final_vend_cost', meanVendCost)
+        self.logger.record('a_vending/average_quantity_offered', meanquantityOffered)
+
         self.logger.record('a_vending/quantity_sold_count', quantitySold)
         self.logger.record('a_vending/total_value_sold', money_sales)
         self.logger.record('a_vending/vendors_made_sale_count', vendorsMadeSale)
@@ -153,8 +164,8 @@ class MultiAgentMacodiacEnvironment(Env):
             self.consumers_arr.append(ConsumerObject())
 
         
-        # creates an array full of 10's shaped [20,20,20], of length numAgents
-        self.action_space = spaces.MultiDiscrete(np.full(numAgents, 15) )
+        # creates an array full of 15's shaped [15,15,15], of length numAgents muliplied by 2 (two actions per agent)
+        self.action_space = spaces.MultiDiscrete(np.full((numAgents * 2), 15) )
 
 
         # the observation space is a nAgents by nActions array of float32 numbers between -99-99
@@ -162,9 +173,10 @@ class MultiAgentMacodiacEnvironment(Env):
         # Observations space:
         # 0: agent's state, after the action has been applied
         # 1: agent's vending price in this round
-        # 2: agent's count of sold items
+        # 2: number of items the agent was willing to sell
+        # 2: agent's actual count of sold items
         # 3: the wholesale price in this round
-        self.observation_space = spaces.Box(low=0,high=200, shape=(numAgents, 3), dtype=np.int32)
+        self.observation_space = spaces.Box(low=0,high=200, shape=(numAgents, 4), dtype=np.int32)
 
         print(f'obs_space.sample: {self.observation_space.sample()}')
 
@@ -193,14 +205,17 @@ class MultiAgentMacodiacEnvironment(Env):
         
 
 
-    def set_agent_action(self, action, agent):
+    def set_agent_action(self, actionPrice, actionQuantity, agent):
         # agent.state is the percentage price diff from the wholesale price
-        agent.state = action
+        agent.state = actionPrice
         agent.vendingPrice = self.env_wholesale_price + agent.state
+        agent.willingToSellMaximum = actionQuantity
 
         if agent.vendingPrice == 0:
             print(f'error')
             agent.vendingPrice = max(1, agent.vendingPrice)
+
+        # print (f'agent price/quantity = {actionPrice}/{actionQuantity}')
 
 
         # agentBaseVendingPriceAdjust = self.env_wholesale_price * (agent.state / 100)
@@ -231,14 +246,17 @@ class MultiAgentMacodiacEnvironment(Env):
         reward_arr = []
         done_arr = []
         info_arr = {'n': []}
+        totalNumAgents = len(self.policy_agents)
         
         for i, agent in enumerate(self.policy_agents):
+            priceIndex = i
+            quantityIndex = i + totalNumAgents
             self.clear_agent_stats(agent)
-            self.set_agent_action(action_arr[i], agent)
+            self.set_agent_action(action_arr[priceIndex], action_arr[quantityIndex], agent)
 
         for i, consumer in enumerate(self.consumers_arr):
             self.clear_consumer_stats(consumer)
-            self.alt_set_consumer_purchases(self.policy_agents, consumer)
+            self.set_consumer_purchases(self.policy_agents, consumer)
 
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
@@ -246,7 +264,7 @@ class MultiAgentMacodiacEnvironment(Env):
             reward_arr.append(self._get_reward(agent))
             done_arr.append(self._get_done(agent))
             info_arr['n'].append(self._get_info(agent, i))        
-
+ 
         if self.environment_timesteps <= 0:
             isTerminal = True
         elif any(done_arr):
@@ -265,7 +283,7 @@ class MultiAgentMacodiacEnvironment(Env):
         concatObsArray = np.array(tmpObsArray).astype(np.int32) 
         return concatObsArray, float(sum(reward_arr)), isTerminal,  info_arr
 
-    def alt_set_consumer_purchases(self, agents_arr, consumer):
+    def set_consumer_purchases(self, agents_arr, consumer):
         """
         So long as the consumer has money, loops through the agents, and selects the lowest
         priced agent. 
@@ -285,75 +303,45 @@ class MultiAgentMacodiacEnvironment(Env):
        
         # gather all of the lowest price agents
         for i, agent in enumerate(agents_arr):
-            if agent.vendingPrice == lowestAbsolutePrice:
+            if agent.vendingPrice == lowestAbsolutePrice and agent.quantitySold < agent.willingToSellMaximum:
                 lowestPriceAgentIndexList.append(i)
 
         shuffle(lowestPriceAgentIndexList)
 
         # while the consumer still has money, purchase
         # items from the vendors
-        while consumer.money > 0:
-            # loop through each vendor, purchase one item from them
-            for agentIndex in lowestPriceAgentIndexList:
-                if consumer.money > 0:
-                    agentToPurchaseFrom = agents_arr[agentIndex]
-                    
-                    if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
-                        raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
-
-                    if consumer.money >= agentToPurchaseFrom.vendingPrice:
-                        if consumer.money < agentToPurchaseFrom.vendingPrice:
-                            raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agentToPurchaseFrom.vendingPrice}]')
-                        consumer.money -= agentToPurchaseFrom.vendingPrice
-                        # print(f'consumer money: {consumer.money}')
-                        consumer.total_consumed += 1
-                        agentToPurchaseFrom.quantitySold += 1
-
-                        # Marginal cost trends down towards 1, then increases upwards
-                        if agentToPurchaseFrom.vendCostTrend == 'up':
-                            agentToPurchaseFrom.vendCost += 0.66
-                        elif agentToPurchaseFrom.vendCostTrend == 'down':
-                            agentToPurchaseFrom.vendCost -= 0.66
-                            if agentToPurchaseFrom.vendCost < 1:
-                                agentToPurchaseFrom.vendCostTrend = 'up'
+        if len(lowestPriceAgentIndexList) > 0:
+            while consumer.money > 0:
+                # loop through each vendor, purchase one item from them
+                for agentIndex in lowestPriceAgentIndexList:
+                    if consumer.money > 0:
+                        agentToPurchaseFrom = agents_arr[agentIndex]
                         
-                        agentToPurchaseFrom.totalVendingCost += agentToPurchaseFrom.vendCost 
-                        agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price - agentToPurchaseFrom.vendCost)
-                    else:
-                        # print(f'consumer money was {consumer.money}, setting to 0')
-                        consumer.money = 0
-                        break
+                        if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
+                            raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
 
+                        if consumer.money >= agentToPurchaseFrom.vendingPrice:
+                            if consumer.money < agentToPurchaseFrom.vendingPrice:
+                                raise ValueError(f'consumer with: [{consumer.money}] money attempted to purchase from agent charging: [{agentToPurchaseFrom.vendingPrice}]')
+                            consumer.money -= agentToPurchaseFrom.vendingPrice
+                            # print(f'consumer money: {consumer.money}')
+                            consumer.total_consumed += 1
+                            agentToPurchaseFrom.quantitySold += 1
 
-    def set_consumer_purchases(self, agents_arr, consumer):
-        """
-        So long as the consumer has money, loops through the agents, and selects the lowest
-        price agent. 
-
-        Purchases as many items from the agent as possible
-        """
-
-        lowestPriceAgnetIndex = 0
-        vendingPrices = []
-            
-        for i, agent in enumerate(agents_arr):
-            vendingPrices.append(agent.vendingPrice)
-            if agent.vendingPrice < agents_arr[lowestPriceAgnetIndex].vendingPrice:
-                lowestPriceAgnetIndex = i
-
-        lowestAgentVendPrice = agents_arr[lowestPriceAgnetIndex].vendingPrice
-
-        # instead of this while loop, just return the 
-        quantityPurchasable = np.floor(consumer.money / lowestAgentVendPrice)
-        consumerConsumed = quantityPurchasable
-        tmpAgentRewardPerUnitSold = (lowestAgentVendPrice - self.env_wholesale_price)
-        agentReward = tmpAgentRewardPerUnitSold * consumerConsumed
-
-        # consumer.money = 0
-        consumer.total_consumed += consumerConsumed
-        agents_arr[lowestPriceAgnetIndex].reward += agentReward
-        agents_arr[lowestPriceAgnetIndex].quantitySold += consumerConsumed
-        return lowestPriceAgnetIndex, lowestAgentVendPrice, vendingPrices
+                            # Marginal cost trends down towards 1, then increases upwards
+                            if agentToPurchaseFrom.vendCostTrend == 'up':
+                                agentToPurchaseFrom.vendCost += 0.66
+                            elif agentToPurchaseFrom.vendCostTrend == 'down':
+                                agentToPurchaseFrom.vendCost -= 0.66
+                                if agentToPurchaseFrom.vendCost < 1:
+                                    agentToPurchaseFrom.vendCostTrend = 'up'
+                            
+                            agentToPurchaseFrom.totalVendingCost += agentToPurchaseFrom.vendCost 
+                            agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price - agentToPurchaseFrom.vendCost)
+                        else:
+                            # print(f'consumer money was {consumer.money}, setting to 0')
+                            consumer.money = 0
+                            break
 
 
     def _get_quantity_sold(self, agent):
@@ -396,8 +384,8 @@ class MultiAgentMacodiacEnvironment(Env):
             "sold": agent.quantitySold,
             "reward": agent.reward,
             "vendCost": agent.vendCost,
-            "totalVendingCost": agent.totalVendingCost
-            
+            "totalVendingCost": agent.totalVendingCost,
+            "totalQuantityOffered": agent.willingToSellMaximum
         }
 
 
@@ -422,6 +410,7 @@ class MultiAgentMacodiacEnvironment(Env):
             self.policy_agents[i].reward = 0
             self.policy_agents[i].info = {}
             self.policy_agents[i].done = False
+            self.policy_agents[i].willingToSellMaximum = 0
             self.policy_agents[i].vendingPrice = 0
             self.policy_agents[i].quantitySold = 0
             self.policy_agents[i].vendCost = 1
@@ -441,4 +430,4 @@ class MultiAgentMacodiacEnvironment(Env):
         """
         Gets a default observation for this space
         """
-        return [0.0, 0.0, 0]# , self.env_wholesale_price]
+        return [0.0, 0.0, 0.0, 0]# , self.env_wholesale_price]
