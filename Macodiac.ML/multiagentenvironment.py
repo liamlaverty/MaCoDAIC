@@ -143,8 +143,8 @@ class MultiAgentMacodiacEnvironment(Env):
     environment_starter_timesteps = 150
     env_wholesale_price = 8        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
-    num_consumers = 1
-    consumer_total_money_per_turn = 475 * 2
+    num_consumers = 25
+    consumer_total_money_per_turn = 475
     consumers_arr = []
 
 

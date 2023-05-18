@@ -47,10 +47,10 @@ class MultiagentMain():
             self.numTrainingIterations = 2_000_000
         elif self.mode == 'DUOPOLY':
             self.numAgents = 2
-            self.numTrainingIterations = 3_000_000
+            self.numTrainingIterations = 2_000_000
         elif self.mode == 'OLIGOPOLY':
             self.numAgents = 5
-            self.numTrainingIterations = 5_000_000  
+            self.numTrainingIterations = 3_000_000  
         elif self.mode == 'PERFECT_COMP':
             self.numAgents = 10
             self.numTrainingIterations = 15_000_000
@@ -60,9 +60,9 @@ class MultiagentMain():
         if self.numAgents == 0 or self.numTrainingIterations == 0:
             raise ValueError('both numAgents and numTrainingItterations must be above 0')
 
-        if self.__MODE_RANDOMSAMPLE__:
+        # if self.__MODE_RANDOMSAMPLE__:
             # when in random sample mode, just reset to 100k iterations
-            self.numTrainingIterations = 100_000
+            # self.numTrainingIterations = 100_000
 
 
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
@@ -226,7 +226,7 @@ class MultiagentMain():
                 model.learn(total_timesteps=saveEveryNSteps,
                             callback=TensorboardPriceCallback(),
                             tb_log_name=saveName)
-                model.save(os.path.join(savePath, f'interim-{i}'))
+                model.save(os.path.join(savePath, f'interim-{i}-{saveName}'))
 
         return model
 
@@ -268,7 +268,7 @@ class MultiagentMain():
 
 
 
-__MODE_OPTIONS__ = ['DUOPOLY', 'MONOPOLY',  'OLIGOPOLY',  'PERFECT_COMP']
+__MODE_OPTIONS__ = ['MONOPOLY', 'DUOPOLY',  'OLIGOPOLY',  'PERFECT_COMP']
 for mode in __MODE_OPTIONS__:
     main = MultiagentMain(mode)
     main.Run()
