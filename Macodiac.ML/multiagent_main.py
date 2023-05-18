@@ -44,16 +44,16 @@ class MultiagentMain():
 
         if self.mode == 'MONOPOLY':
             self.numAgents = 1
-            self.numTrainingIterations = 20_000
+            self.numTrainingIterations = 2_000_000
         elif self.mode == 'DUOPOLY':
             self.numAgents = 2
-            self.numTrainingIterations = 30_000
+            self.numTrainingIterations = 3_000_000
         elif self.mode == 'OLIGOPOLY':
             self.numAgents = 5
-            self.numTrainingIterations = 50_000  
+            self.numTrainingIterations = 5_000_000  
         elif self.mode == 'PERFECT_COMP':
             self.numAgents = 10
-            self.numTrainingIterations = 150_000
+            self.numTrainingIterations = 15_000_000
         else:
             raise ValueError(f'self.mode [{self.mode}] was not in mode options list [{self.__MODE_OPTIONS__}]')
         
