@@ -143,8 +143,8 @@ class MultiAgentMacodiacEnvironment(Env):
     environment_starter_timesteps = 150
     env_wholesale_price = 8        # the price agents pay to purchase goods
     env_agent_marginal_cost = 0     # the marginal cost of vending
-    num_consumers = 25
-    consumer_total_money_per_turn = 475
+    num_consumers = 1
+    consumer_total_money_per_turn = 475 * 2
     consumers_arr = []
 
 
@@ -164,7 +164,7 @@ class MultiAgentMacodiacEnvironment(Env):
             self.consumers_arr.append(ConsumerObject())
 
         
-        # creates an array full of 15's shaped [15,15,15], of length numAgents muliplied by 2 (two actions per agent)
+        # creates an array full of 30's shaped [30,30,30], of length numAgents muliplied by 2 (two actions per agent)
         self.action_space = spaces.MultiDiscrete(np.full((numAgents * 2), 30) )
 
 
@@ -256,7 +256,7 @@ class MultiAgentMacodiacEnvironment(Env):
 
         for i, consumer in enumerate(self.consumers_arr):
             self.clear_consumer_stats(consumer)
-            self.set_consumer_purchases(self.policy_agents, consumer)
+            self.alt_set_consumer_purchases(self.policy_agents, consumer)
 
         for i, agent in enumerate(self.policy_agents):
             agent.state, agent.reward, agent.done, agent.info = self.step_agent(agent)
@@ -283,6 +283,75 @@ class MultiAgentMacodiacEnvironment(Env):
         concatObsArray = np.array(tmpObsArray).astype(np.int32) 
         return concatObsArray, float(sum(reward_arr)), isTerminal,  info_arr
 
+
+    def alt_set_consumer_purchases(self, agents_arr, consumer):
+        """
+        So long as the consumer has money, loops through the agents, and selects the lowest
+        priced agent. Takes into consideration the Agent's willingness-to-supply
+
+        if multiple agents share the same price points, distributes the sales across them all
+        """
+        while consumer.money > 0:
+            lowestAbsolutePrice = 0
+            vendingPrices = []
+            lowestPriceAgentIndexList = []
+
+            for i, agent in enumerate(agents_arr):
+                if agent.willingToSellMaximum > agent.quantitySold:
+                    vendingPrices.append(agent.vendingPrice)
+            
+            if len(vendingPrices) <= 0:
+                # if there are no more vendors willing to sell, exit the while loop
+                # print(f'no willing vendors left, exiting for consumer')
+                return
+                # break
+
+
+            lowestAbsolutePrice = min(vendingPrices)
+
+            for i, agent in enumerate(agents_arr):
+                if agent.vendingPrice == lowestAbsolutePrice:
+                    lowestPriceAgentIndexList.append(i)
+                
+            if len(lowestPriceAgentIndexList) > 0:
+                shuffle(lowestPriceAgentIndexList)
+
+                for agentIndex in lowestPriceAgentIndexList:
+                    if consumer.money > 0:
+                        agentToPurchaseFrom = agents_arr[agentIndex]
+
+                        if agentToPurchaseFrom.vendingPrice != lowestAbsolutePrice:
+                            raise ValueError(f'agent vending price [{agentToPurchaseFrom.vendingPrice}] is not the same as lowestAbsPrice:[{lowestAbsolutePrice}]')
+
+                        if consumer.money >= agentToPurchaseFrom.vendingPrice:
+                            if agentToPurchaseFrom.willingToSellMaximum > agentToPurchaseFrom.quantitySold:
+                                consumer.money -= agentToPurchaseFrom.vendingPrice
+                                consumer.total_consumed += 1
+                                agentToPurchaseFrom.quantitySold += 1
+
+                                # Marginal cost trends down towards 1, then increases upwards
+                                if agentToPurchaseFrom.vendCostTrend == 'up':
+                                    agentToPurchaseFrom.vendCost += 0.66
+                                elif agentToPurchaseFrom.vendCostTrend == 'down':
+                                    agentToPurchaseFrom.vendCost -= 0.66
+                                    if agentToPurchaseFrom.vendCost < 1:
+                                        agentToPurchaseFrom.vendCostTrend = 'up'
+                                
+                                agentToPurchaseFrom.totalVendingCost += agentToPurchaseFrom.vendCost 
+                                agentToPurchaseFrom.reward += (agentToPurchaseFrom.vendingPrice - self.env_wholesale_price - agentToPurchaseFrom.vendCost)
+                                if consumer.money <= 0 or consumer.money < lowestAbsolutePrice:
+                                    # the consumer can no longer afford the lowest price item
+                                    return
+                            else:
+                                # the agent is no longer willing to sell
+                                break
+                        else:
+                            # print(f'consumer money was {consumer.money}, setting to 0')
+                            consumer.money = 0
+                            return
+        else:
+            print(f'consumer money is no longer above 0:{consumer.money}')
+
     def set_consumer_purchases(self, agents_arr, consumer):
         """
         So long as the consumer has money, loops through the agents, and selects the lowest
@@ -295,7 +364,8 @@ class MultiAgentMacodiacEnvironment(Env):
         vendingPrices = []
 
         for i, agent in enumerate(agents_arr):
-            vendingPrices.append(agent.vendingPrice)
+            if agent.willingToSellMaximum > agent.quantitySold:
+                vendingPrices.append(agent.vendingPrice)
 
       
         # print(f'prices are: {vendingPrices}')

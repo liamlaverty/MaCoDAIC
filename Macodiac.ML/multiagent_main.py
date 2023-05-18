@@ -60,6 +60,11 @@ class MultiagentMain():
         if self.numAgents == 0 or self.numTrainingIterations == 0:
             raise ValueError('both numAgents and numTrainingItterations must be above 0')
 
+        if self.__MODE_RANDOMSAMPLE__:
+            # when in random sample mode, just reset to 100k iterations
+            self.numTrainingIterations = 100_000
+
+
         self.env = MultiAgentMacodiacEnvironment(envTimesteps=self.envTimesteps, numAgents=self.numAgents)
         check_env(self.env)
         
@@ -106,9 +111,11 @@ class MultiagentMain():
                 #print(f'iterator:{iterator}')
                 action_arr = env.action_space.sample()
 
-                # action_arr = []
-                # for i in range(self.numAgents * 2):
-                #     action_arr.append(11)
+                # action_arr = [3, 4, 2, 23]
+                # for i in range(self.numAgents):
+                #     action_arr.append(29)
+                # for i in range(self.numAgents):
+                #     action_arr.append(28)
 
                 print(f'action for agents:\t{action_arr}')
                 
@@ -261,7 +268,7 @@ class MultiagentMain():
 
 
 
-__MODE_OPTIONS__ = ['MONOPOLY','DUOPOLY',  'OLIGOPOLY',  'PERFECT_COMP']
+__MODE_OPTIONS__ = ['DUOPOLY', 'MONOPOLY',  'OLIGOPOLY',  'PERFECT_COMP']
 for mode in __MODE_OPTIONS__:
     main = MultiagentMain(mode)
     main.Run()
