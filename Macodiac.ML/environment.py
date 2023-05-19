@@ -41,7 +41,6 @@ class MacodiacEnvironment(Env):
         self.state += action - 1
         self.environment_timesteps -=1
 
-
         if self.state > 0:
             reward = 1
         elif self.state == 0:
