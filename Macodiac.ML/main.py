@@ -2,6 +2,7 @@ import os
 import gymnasium as gym
 from gymnasium import Env
 from environment import MacodiacEnvironment
+from multiagentenvironment import MultiAgentMacodiacEnvironment
 from stable_baselines3.common.evaluation import evaluate_policy
 import numpy as np
 
@@ -22,7 +23,7 @@ class Main():
         self.save_path =  os.path.join(filePath,'saved_models', 'model')
         self.save_path_intermittent =  os.path.join(filePath,'saved_models', 'intermittent_saved_models')
         self.env = MacodiacEnvironment(envTimesteps=100)
-        self.numTrainingIterations = 10_000_000
+        self.numTrainingIterations = 10_000
         self.numEpisodes = 10
 
 
@@ -31,7 +32,7 @@ class Main():
         # NOTES: 
         #   if loadmodel is set to false, and trainmodel is set to true, 
         #   the currently saved model is overwritten
-        self.__MODE_LOADMODEL__ = True
+        self.__MODE_LOADMODEL__ =False
 
         # set to true if you want to train and then save the model
         self.__MODE_TRAINMODEL__ = True
